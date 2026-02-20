@@ -7,7 +7,7 @@ describe('Cipher', () => {
   const cipher = new Cipher(password);
 
   it('encrypts and decrypts correctly', () => {
-    const plaintext = 'Hello, Claude Remote!';
+    const plaintext = 'Hello, LLM Remote!';
     const encrypted = cipher.encrypt(plaintext);
     const decrypted = cipher.decrypt(encrypted);
     assert.equal(decrypted, plaintext);

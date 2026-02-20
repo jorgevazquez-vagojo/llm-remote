@@ -1,4 +1,4 @@
-# Contribuir a Claude Remote
+# Contribuir a LLM Remote
 
 Gracias por tu interés en contribuir. Este documento explica cómo hacerlo.
 
@@ -11,7 +11,7 @@ Gracias por tu interés en contribuir. Este documento explica cómo hacerlo.
 
 ```bash
 git clone <repo-url>
-cd claude-remote
+cd llm-remote
 npm install
 cp .env.example .env
 # Edita .env con tus valores

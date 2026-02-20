@@ -4,7 +4,7 @@ import { initAudit, closeAudit } from './security/audit.js';
 import { createBot } from './bot.js';
 
 async function main() {
-  log.info('Claude Remote iniciando...');
+  log.info('LLM Remote iniciando...');
 
   // Inicializar audit log cifrado
   initAudit();

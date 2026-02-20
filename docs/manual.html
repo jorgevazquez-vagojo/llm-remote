@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Claude Remote — Manual de Usuario</title>
+<title>LLM Remote — Manual de Usuario</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -222,7 +222,7 @@
 
 <!-- PORTADA -->
 <div class="cover">
-  <div class="logo">Claude Remote</div>
+  <div class="logo">LLM Remote</div>
   <div class="subtitle">Puente Cifrado Telegram ↔ IA Multi-Proveedor</div>
   <div class="org">Redegal · Digital Consulting Group</div>
   <div class="meta">
@@ -254,7 +254,7 @@
 <!-- 1. INTRODUCCIÓN -->
 <h1 id="intro">1. Introducción</h1>
 
-<p><strong>Claude Remote</strong> es una herramienta interna que permite a los miembros del equipo de Redegal interactuar con múltiples proveedores de IA (Claude Code, OpenAI, Gemini, Groq) directamente desde Telegram, con cifrado de nivel bancario.</p>
+<p><strong>LLM Remote</strong> es una herramienta interna que permite a los miembros del equipo de Redegal interactuar con múltiples proveedores de IA (Claude Code, OpenAI, Gemini, Groq) directamente desde Telegram, con cifrado de nivel bancario.</p>
 
 <h3>¿Para qué sirve?</h3>
 <ul>
@@ -273,7 +273,7 @@
 <div class="page-break"></div>
 <h1 id="providers">2. Proveedores IA</h1>
 
-<p>Claude Remote soporta 5 proveedores. Cambia entre ellos con <code>/ia &lt;nombre&gt;</code> en Telegram.</p>
+<p>LLM Remote soporta 5 proveedores. Cambia entre ellos con <code>/ia &lt;nombre&gt;</code> en Telegram.</p>
 
 <table>
   <tr>
@@ -347,8 +347,8 @@
 <h2>3.2 Instalación manual</h2>
 
 <pre><code><span class="comment"># 1. Clonar repositorio</span>
-<span class="cmd">git clone</span> &lt;repo-url&gt; ~/claude-remote
-<span class="cmd">cd</span> ~/claude-remote
+<span class="cmd">git clone</span> &lt;repo-url&gt; ~/llm-remote
+<span class="cmd">cd</span> ~/llm-remote
 
 <span class="comment"># 2. Instalar dependencias</span>
 <span class="cmd">npm install</span>
@@ -382,8 +382,8 @@
 <ol>
   <li>Abre <strong>@BotFather</strong> en Telegram</li>
   <li>Envía <code>/newbot</code></li>
-  <li>Elige un nombre (ej: <em>"Mi Claude Remote"</em>)</li>
-  <li>Elige un username (ej: <em>"mi_claude_remote_bot"</em>)</li>
+  <li>Elige un nombre (ej: <em>"Mi LLM Remote"</em>)</li>
+  <li>Elige un username (ej: <em>"mi_llm_remote_bot"</em>)</li>
   <li>Copia el <strong>token</strong> que te da BotFather</li>
 </ol>
 
@@ -409,7 +409,7 @@
 <p>El wizard (<code>npm run setup</code>) te guía en 6 pasos:</p>
 
 <pre><code>╔══════════════════════════════════════════╗
-║   Claude Remote — Configurador          ║
+║   LLM Remote — Configurador          ║
 ╚══════════════════════════════════════════╝
 
 ── 1/6  Telegram ──
@@ -565,7 +565,7 @@ Refactoriza el archivo main.js</code></pre>
 <div class="diagram">
   Telegram App                           Tu Máquina
   ┌──────────┐    MTProto (cifrado)    ┌──────────────────────────────────────┐
-  │  Usuario  │ ◄──────────────────►   │  Claude Remote Bot                   │
+  │  Usuario  │ ◄──────────────────►   │  LLM Remote Bot                   │
   │           │                        │                                      │
   │  /auth    │    Capa 1: Transporte  │  Capa 2: Whitelist (Telegram ID)     │
   │  PIN ━━━━━┿━━━━━━━━━━━━━━━━━━━━►  │  Capa 3: PIN (tiempo-constante)      │
@@ -627,7 +627,7 @@ Refactoriza el archivo main.js</code></pre>
 
 <h2>8.2 Estructura del proyecto</h2>
 
-<pre><code>claude-remote/
+<pre><code>llm-remote/
 ├── src/
 │   ├── index.js              <span class="comment"># Punto de entrada</span>
 │   ├── bot.js                <span class="comment"># Bot Telegram + handlers</span>
@@ -723,19 +723,19 @@ Refactoriza el archivo main.js</code></pre>
 
 <h3>Logs</h3>
 <pre><code><span class="comment"># Ver logs en tiempo real</span>
-<span class="cmd">tail -f</span> ~/claude-remote/data/claude-remote.log
+<span class="cmd">tail -f</span> ~/llm-remote/data/llm-remote.log
 
 <span class="comment"># Si usa servicio en macOS</span>
-<span class="cmd">tail -f</span> ~/claude-remote/data/claude-remote.log
+<span class="cmd">tail -f</span> ~/llm-remote/data/llm-remote.log
 
 <span class="comment"># Si usa servicio en Linux</span>
-<span class="cmd">journalctl</span> --user -u claude-remote -f</code></pre>
+<span class="cmd">journalctl</span> --user -u llm-remote -f</code></pre>
 
 <h3>Reconfigurar</h3>
-<pre><code><span class="cmd">cd</span> ~/claude-remote && <span class="cmd">npm run</span> setup</code></pre>
+<pre><code><span class="cmd">cd</span> ~/llm-remote && <span class="cmd">npm run</span> setup</code></pre>
 
 <h3>Desinstalar</h3>
-<pre><code><span class="cmd">bash</span> ~/claude-remote/installer.sh --uninstall</code></pre>
+<pre><code><span class="cmd">bash</span> ~/llm-remote/installer.sh --uninstall</code></pre>
 
 <!-- 10. VARIABLES -->
 <div class="page-break"></div>
@@ -771,7 +771,7 @@ Refactoriza el archivo main.js</code></pre>
 
 <!-- FOOTER -->
 <div class="footer">
-  <p>Claude Remote v1.2 · Redegal · Digital Consulting Group · Febrero 2026</p>
+  <p>LLM Remote v1.2 · Redegal · Digital Consulting Group · Febrero 2026</p>
   <p>Documento interno — Uso exclusivo del equipo de Redegal</p>
 </div>
 

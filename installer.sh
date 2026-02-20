@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════
-#  Claude Remote — Instalador Corporativo
+#  LLM Remote — Instalador Corporativo
 #  Redegal · Digital Consulting Group
 #
 #  Uso:
@@ -10,7 +10,7 @@
 #
 #  Qué hace:
 #    1. Verifica requisitos (Node.js 20+, claude CLI)
-#    2. Descarga/actualiza Claude Remote
+#    2. Descarga/actualiza LLM Remote
 #    3. Instala dependencias
 #    4. Ejecuta configurador interactivo
 #    5. (Opcional) Crea servicio auto-arranque
@@ -24,11 +24,11 @@
 set -euo pipefail
 
 # ── Configuración ──────────────────────────────────────────────────
-INSTALL_DIR="${CLAUDE_REMOTE_DIR:-$HOME/claude-remote}"
-REPO_URL="${CLAUDE_REMOTE_REPO:-https://github.com/jorgevazquez-vagojo/claude-remote.git}"
+INSTALL_DIR="${LLM_REMOTE_DIR:-$HOME/llm-remote}"
+REPO_URL="${LLM_REMOTE_REPO:-https://github.com/jorgevazquez-vagojo/llm-remote.git}"
 BRANCH="main"
 MIN_NODE_VERSION=20
-SERVICE_NAME="com.redegal.claude-remote"
+SERVICE_NAME="com.redegal.llm-remote"
 
 # ── Colores ────────────────────────────────────────────────────────
 if [[ -t 1 ]]; then
@@ -71,20 +71,20 @@ print_banner() {
 
    ╔═══════════════════════════════════════════════════════╗
    ║                                                       ║
-   ║   ██████╗██╗      █████╗ ██╗   ██╗██████╗ ███████╗   ║
-   ║  ██╔════╝██║     ██╔══██╗██║   ██║██╔══██╗██╔════╝   ║
-   ║  ██║     ██║     ███████║██║   ██║██║  ██║█████╗     ║
-   ║  ██║     ██║     ██╔══██║██║   ██║██║  ██║██╔══╝     ║
-   ║  ╚██████╗███████╗██║  ██║╚██████╔╝██████╔╝███████╗   ║
-   ║   ╚═════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝  ║
-   ║              ██████╗ ███████╗███╗   ███╗               ║
-   ║              ██╔══██╗██╔════╝████╗ ████║               ║
-   ║              ██████╔╝█████╗  ██╔████╔██║               ║
-   ║              ██╔══██╗██╔══╝  ██║╚██╔╝██║               ║
-   ║              ██║  ██║███████╗██║ ╚═╝ ██║               ║
-   ║              ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝              ║
+   ║  ██╗     ██╗     ███╗   ███╗                          ║
+   ║  ██║     ██║     ████╗ ████║                          ║
+   ║  ██║     ██║     ██╔████╔██║                          ║
+   ║  ██║     ██║     ██║╚██╔╝██║                          ║
+   ║  ███████╗███████╗██║ ╚═╝ ██║                          ║
+   ║  ╚══════╝╚══════╝╚═╝     ╚═╝                          ║
+   ║      ██████╗ ███████╗███╗   ███╗ ██████╗ ████████╗    ║
+   ║      ██╔══██╗██╔════╝████╗ ████║██╔═══██╗╚══██╔══╝   ║
+   ║      ██████╔╝█████╗  ██╔████╔██║██║   ██║   ██║      ║
+   ║      ██╔══██╗██╔══╝  ██║╚██╔╝██║██║   ██║   ██║      ║
+   ║      ██║  ██║███████╗██║ ╚═╝ ██║╚██████╔╝   ██║      ║
+   ║      ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝ ╚═════╝    ╚═╝     ║
    ║                                                       ║
-   ║   Telegram ↔ IA · Cifrado Extremo a Extremo            ║
+   ║   Telegram ↔ IA · Cifrado Extremo a Extremo           ║
    ║   Redegal · Grupo de Consultoría Digital               ║
    ║                                                       ║
    ╚═══════════════════════════════════════════════════════╝
@@ -182,7 +182,7 @@ install_project() {
     info "Directorio existente sin git. Usando archivos locales."
     cd "$INSTALL_DIR"
   else
-    info "Descargando Claude Remote..."
+    info "Descargando LLM Remote..."
     if git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$INSTALL_DIR" 2>/dev/null; then
       ok "Descargado desde repositorio"
     else
@@ -247,9 +247,9 @@ setup_launchd() {
     <false/>
   </dict>
   <key>StandardOutPath</key>
-  <string>${INSTALL_DIR}/data/claude-remote.log</string>
+  <string>${INSTALL_DIR}/data/llm-remote.log</string>
   <key>StandardErrorPath</key>
-  <string>${INSTALL_DIR}/data/claude-remote.error.log</string>
+  <string>${INSTALL_DIR}/data/llm-remote.error.log</string>
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
@@ -270,11 +270,11 @@ PLIST
   info "Controlar:"
   echo -e "    ${DIM}Parar:     launchctl unload $plist_path${NC}"
   echo -e "    ${DIM}Arrancar:  launchctl load $plist_path${NC}"
-  echo -e "    ${DIM}Logs:      tail -f $INSTALL_DIR/data/claude-remote.log${NC}"
+  echo -e "    ${DIM}Logs:      tail -f $INSTALL_DIR/data/llm-remote.log${NC}"
 }
 
 setup_systemd() {
-  local service_path="$HOME/.config/systemd/user/claude-remote.service"
+  local service_path="$HOME/.config/systemd/user/llm-remote.service"
   local node_path
   node_path="$(which node)"
 
@@ -282,7 +282,7 @@ setup_systemd() {
 
   cat > "$service_path" << SERVICE
 [Unit]
-Description=Claude Remote — Telegram IA Bridge
+Description=LLM Remote — Telegram IA Bridge
 After=network-online.target
 Wants=network-online.target
 
@@ -292,8 +292,8 @@ WorkingDirectory=${INSTALL_DIR}
 ExecStart=${node_path} ${INSTALL_DIR}/src/index.js
 Restart=on-failure
 RestartSec=10
-StandardOutput=append:${INSTALL_DIR}/data/claude-remote.log
-StandardError=append:${INSTALL_DIR}/data/claude-remote.error.log
+StandardOutput=append:${INSTALL_DIR}/data/llm-remote.log
+StandardError=append:${INSTALL_DIR}/data/llm-remote.error.log
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 
 [Install]
@@ -301,23 +301,23 @@ WantedBy=default.target
 SERVICE
 
   systemctl --user daemon-reload
-  systemctl --user enable claude-remote
-  systemctl --user start claude-remote
+  systemctl --user enable llm-remote
+  systemctl --user start llm-remote
 
-  ok "Servicio systemd creado: claude-remote"
+  ok "Servicio systemd creado: llm-remote"
   info "Controlar:"
-  echo -e "    ${DIM}Estado:    systemctl --user status claude-remote${NC}"
-  echo -e "    ${DIM}Parar:     systemctl --user stop claude-remote${NC}"
-  echo -e "    ${DIM}Logs:      journalctl --user -u claude-remote -f${NC}"
+  echo -e "    ${DIM}Estado:    systemctl --user status llm-remote${NC}"
+  echo -e "    ${DIM}Parar:     systemctl --user stop llm-remote${NC}"
+  echo -e "    ${DIM}Logs:      journalctl --user -u llm-remote -f${NC}"
 }
 
 # ── Desinstalar ───────────────────────────────────────────────────
 uninstall() {
   print_banner
-  echo -e "${BOLD}Desinstalador de Claude Remote${NC}\n"
+  echo -e "${BOLD}Desinstalador de LLM Remote${NC}\n"
 
   if [[ ! -d "$INSTALL_DIR" ]]; then
-    fail "Claude Remote no está instalado en $INSTALL_DIR"
+    fail "LLM Remote no está instalado en $INSTALL_DIR"
     exit 1
   fi
 
@@ -330,7 +330,7 @@ uninstall() {
       echo -e "    ${DIM}$plist${NC}"
     fi
   elif [[ "$OS" == "linux" ]]; then
-    local svc="$HOME/.config/systemd/user/claude-remote.service"
+    local svc="$HOME/.config/systemd/user/llm-remote.service"
     if [[ -f "$svc" ]]; then
       echo -e "    ${DIM}$svc${NC}"
     fi
@@ -349,15 +349,15 @@ uninstall() {
     rm -f "$plist"
     ok "Servicio macOS eliminado"
   elif [[ "$OS" == "linux" ]]; then
-    systemctl --user stop claude-remote 2>/dev/null || true
-    systemctl --user disable claude-remote 2>/dev/null || true
-    rm -f "$HOME/.config/systemd/user/claude-remote.service"
+    systemctl --user stop llm-remote 2>/dev/null || true
+    systemctl --user disable llm-remote 2>/dev/null || true
+    rm -f "$HOME/.config/systemd/user/llm-remote.service"
     systemctl --user daemon-reload 2>/dev/null || true
     ok "Servicio systemd eliminado"
   fi
 
   rm -rf "$INSTALL_DIR"
-  ok "Claude Remote desinstalado"
+  ok "LLM Remote desinstalado"
   echo ""
   info "Tu configuración (.env) ha sido eliminada."
   info "Los datos cifrados del audit log también."
@@ -437,7 +437,7 @@ main() {
 
   # Handle --help
   if [[ "${1:-}" == "--help" || "${1:-}" == "--ayuda" || "${1:-}" == "-h" ]]; then
-    echo "Claude Remote — Instalador"
+    echo "LLM Remote — Instalador"
     echo ""
     echo "Uso:"
     echo "  bash installer.sh              Instalar/actualizar"
@@ -446,19 +446,19 @@ main() {
     echo "  bash installer.sh --help       Esta ayuda"
     echo ""
     echo "Variables de entorno:"
-    echo "  CLAUDE_REMOTE_DIR   Directorio de instalación (default: ~/claude-remote)"
-    echo "  CLAUDE_REMOTE_REPO  URL del repositorio git"
+    echo "  LLM_REMOTE_DIR   Directorio de instalación (default: ~/llm-remote)"
+    echo "  LLM_REMOTE_REPO  URL del repositorio git"
     exit 0
   fi
 
   # Handle --status
   if [[ "${1:-}" == "--status" || "${1:-}" == "--estado" ]]; then
     detect_os
-    echo -e "${BOLD}Estado de Claude Remote${NC}\n"
+    echo -e "${BOLD}Estado de LLM Remote${NC}\n"
     if [[ "$OS" == "macos" ]]; then
       launchctl list | grep -q "$SERVICE_NAME" && ok "Servicio activo" || fail "Servicio no activo"
     elif [[ "$OS" == "linux" ]]; then
-      systemctl --user is-active claude-remote &>/dev/null && ok "Servicio activo" || fail "Servicio no activo"
+      systemctl --user is-active llm-remote &>/dev/null && ok "Servicio activo" || fail "Servicio no activo"
     fi
     if [[ -f "$INSTALL_DIR/.env" ]]; then
       ok "Configuración encontrada"
@@ -487,7 +487,7 @@ main() {
   fi
 
   # Step 2: Download/Update
-  step 2 "Instalando Claude Remote"
+  step 2 "Instalando LLM Remote"
   echo ""
   install_project
   ok "Proyecto listo en $INSTALL_DIR"

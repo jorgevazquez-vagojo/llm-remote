@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Claude Remote — Configurador Interactivo
+ * LLM Remote — Configurador Interactivo
  * Ejecutar: node src/setup.js
  */
 
@@ -43,7 +43,7 @@ async function main() {
   console.clear();
   console.log(`
    ╔══════════════════════════════════════════╗
-   ║   Claude Remote — Configurador          ║
+   ║   LLM Remote — Configurador          ║
    ║   Telegram ↔ IA Bridge (cifrado)        ║
    ╚══════════════════════════════════════════╝
   `);
@@ -125,7 +125,7 @@ async function main() {
   const logLevel = await ask('Nivel de log (debug/info/warn/error)', existing.LOG_LEVEL || 'info');
 
   // Generate .env
-  const envContent = `# Claude Remote Configuration
+  const envContent = `# LLM Remote Configuration
 # Generado: ${new Date().toISOString()}
 
 # Telegram

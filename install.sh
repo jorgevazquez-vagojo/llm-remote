@@ -1,5 +1,5 @@
 #!/bin/bash
-# Claude Remote — Instalador automático
+# LLM Remote — Instalador automático
 # Uso: curl -sL <url> | bash  o  bash install.sh
 
 set -e
@@ -15,7 +15,7 @@ print_banner() {
   echo -e "${CYAN}"
   echo "  ╔══════════════════════════════════════════╗"
   echo "  ║                                          ║"
-  echo "  ║   Claude Remote — Instalador             ║"
+  echo "  ║   LLM Remote — Instalador             ║"
   echo "  ║   Puente cifrado Telegram ↔ Claude Code  ║"
   echo "  ║                                          ║"
   echo "  ╚══════════════════════════════════════════╝"

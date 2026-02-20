@@ -17,7 +17,7 @@ export class Cipher {
       throw new Error('Master password must be at least 16 characters');
     }
     // Derive separate keys for encryption and HMAC
-    const salt = Buffer.from('claude-remote-v1-master-salt', 'utf8');
+    const salt = Buffer.from('llm-remote-v1-master-salt', 'utf8');
     const derived = pbkdf2Sync(masterPassword, salt, PBKDF2_ITERATIONS, KEY_LENGTH * 2, PBKDF2_DIGEST);
     this.#masterKey = derived.subarray(0, KEY_LENGTH);
     this.#hmacKey = derived.subarray(KEY_LENGTH);

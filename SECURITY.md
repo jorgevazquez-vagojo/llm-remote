@@ -22,7 +22,7 @@ Responderemos en un plazo máximo de 48 horas.
 
 ## Modelo de seguridad
 
-Claude Remote implementa 8 capas de seguridad:
+LLM Remote implementa 8 capas de seguridad:
 
 1. **Transporte**: Telegram MTProto (cifrado en tránsito)
 2. **Lista blanca**: Solo Telegram IDs autorizados

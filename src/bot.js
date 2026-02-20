@@ -23,7 +23,7 @@ export function createBot() {
     const providerList = configured.map(p => `  ${p.displayName}`).join('\n');
 
     await ctx.reply(
-      '🤖 Claude Remote — Telegram ↔ IA Bridge\n\n' +
+      '🤖 LLM Remote — Telegram ↔ IA Bridge\n\n' +
       'Autenticarse: /auth <PIN>\n\n' +
       'Comandos:\n' +
       '  /ask <prompt> — Enviar prompt\n' +
@@ -180,7 +180,7 @@ export function createBot() {
   // /help
   bot.command('help', async (ctx) => {
     await ctx.reply(
-      '🤖 Claude Remote — Comandos:\n\n' +
+      '🤖 LLM Remote — Comandos:\n\n' +
       '/auth <PIN> — Autenticarse\n' +
       '/ask <prompt> — Enviar prompt\n' +
       '/ia [nombre] — Ver/cambiar proveedor IA\n' +

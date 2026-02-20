@@ -1,4 +1,4 @@
-# Claude Remote
+# LLM Remote
 
 **Puente cifrado Telegram ↔ IA (multi-proveedor)**
 
@@ -41,8 +41,8 @@ Cambia entre proveedores con `/ia` en Telegram.
 ## Instalación
 
 ```bash
-git clone <repo-url> claude-remote
-cd claude-remote
+git clone <repo-url> llm-remote
+cd llm-remote
 npm install
 ```
 
@@ -58,7 +58,7 @@ Esto abre un asistente por consola que te guía paso a paso:
 
 ```
 ╔══════════════════════════════════════╗
-║   Claude Remote — Setup Wizard      ║
+║   LLM Remote — Setup Wizard      ║
 ║   Encrypted Telegram-Claude Bridge  ║
 ╚══════════════════════════════════════╝
 
@@ -165,7 +165,7 @@ Telegram (MTProto) → Bot → Auth Guard → Rate Limit → Claude Code
 ## Estructura del proyecto
 
 ```
-claude-remote/
+llm-remote/
 ├── src/
 │   ├── index.js           # Punto de entrada
 │   ├── bot.js             # Bot Telegram (grammY) + handlers + /ia

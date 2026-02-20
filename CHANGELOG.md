@@ -2,6 +2,12 @@
 
 Todos los cambios notables de este proyecto se documentan aquí.
 
+## [1.3.0] — 2026-02-20
+
+### Cambiado
+- Renombrado de "Claude Remote" a "LLM Remote" (refleja naturaleza multi-proveedor)
+- Actualizado manual PDF, instalador, y toda la documentación
+
 ## [1.2.0] — 2026-02-20
 
 ### Añadido
