@@ -1,243 +1,218 @@
-# LLM Remote
+<p align="center">
+  <img src="docs/logo.svg" alt="LLM Remote" width="120">
+</p>
 
-**Puente cifrado Telegram ↔ IA (multi-proveedor)**
+<h1 align="center">LLM Remote</h1>
 
-Controla Claude Code, OpenAI, Gemini y Anthropic desde Telegram, con seguridad de nivel bancario.
+<p align="center">
+  <strong>Encrypted Telegram ↔ AI Multi-Provider Bridge</strong><br>
+  Control Claude Code, OpenAI, Gemini, Groq & Anthropic from Telegram with bank-grade encryption.
+</p>
 
-## Proveedores IA
+<p align="center">
+  <a href="https://github.com/jorgevazquez-vagojo/llm-remote/actions/workflows/ci.yml"><img src="https://github.com/jorgevazquez-vagojo/llm-remote/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/jorgevazquez-vagojo/llm-remote/releases"><img src="https://img.shields.io/github/v/release/jorgevazquez-vagojo/llm-remote?color=6c5ce7" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-00d4aa" alt="License"></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen" alt="Node">
+  <img src="https://img.shields.io/badge/dependencies-2-blue" alt="Dependencies">
+  <img src="https://img.shields.io/badge/tests-53%20passing-success" alt="Tests">
+</p>
 
-| Proveedor | Modo | Coste |
-|-----------|------|-------|
-| 🟣 **Claude Code CLI** | Agentic (acceso a ficheros, terminal) | Según plan |
-| 🟢 **OpenAI GPT-4o** | Chat (API directa) | Pay-per-use |
-| 🔵 **Gemini 2.5 Flash** | Chat (API directa) | Gratis (20 req/día) |
-| 🟣 **Anthropic Sonnet** | Chat (API directa, no agentic) | Pay-per-use |
+<p align="center">
+  <a href="docs/manual.html">Manual ES</a> ·
+  <a href="docs/manual_en.html">Manual EN</a> ·
+  <a href="CHANGELOG.md">Changelog</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="SECURITY.md">Security</a>
+</p>
 
-Cambia entre proveedores con `/ia` en Telegram.
+---
 
-## Características
+## Features
 
-- **Multi-proveedor** — Claude Code + OpenAI + Gemini + Anthropic
-- **Cifrado AES-256-GCM** con detección de manipulación HMAC
-- **Derivación de claves PBKDF2** (310.000 iteraciones, SHA-512)
-- **Autenticación por PIN** con bloqueo por fuerza bruta (5 intentos → 15 min lockout)
-- **Lista blanca de usuarios** por Telegram ID
-- **Sesiones con timeout** auto-lock por inactividad
-- **Rate limiting** configurable por minuto
-- **Log de auditoría cifrado** de todos los comandos
-- **Auto-borrado de mensajes** opcional
-- **Multi-proyecto** — cambia de directorio de trabajo sobre la marcha
-- **Streaming** — respuestas largas se envían en trozos (Claude Code)
-- **Configurador por consola** interactivo
-- **Zero dependencias nativas** — solo JS puro + grammY
+### AI Providers
 
-## Requisitos
+| Provider | Command | Mode | Cost |
+|----------|---------|------|------|
+| Claude Code | `/ia claude` | **Agentic** — reads/writes files, runs commands | Plan-based |
+| OpenAI GPT-4o | `/ia openai` | Chat API + Vision | Pay-per-use |
+| Gemini 2.5 Flash | `/ia gemini` | Chat API + Vision | **Free** (20 req/day) |
+| Groq Llama 3.3 | `/ia groq` | Chat API + Whisper + TTS | **Free** (30 req/min) |
+| Anthropic Sonnet | `/ia anthropic` | Chat API + Vision | Pay-per-use |
 
-- Node.js 20+
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) instalado y configurado
-- Token de bot de Telegram (de [@BotFather](https://t.me/BotFather))
-- Tu Telegram User ID (envía `/myid` a [@userinfobot](https://t.me/userinfobot))
+Switch providers instantly with `/ia <name>` in Telegram.
 
-## Instalación
+### Capabilities
 
-```bash
-git clone <repo-url> llm-remote
-cd llm-remote
-npm install
-```
-
-## Configuración
-
-### Opción 1: Wizard interactivo (recomendado)
-
-```bash
-npm run setup
-```
-
-Esto abre un asistente por consola que te guía paso a paso:
-
-```
-╔══════════════════════════════════════╗
-║   LLM Remote — Setup Wizard      ║
-║   Encrypted Telegram-Claude Bridge  ║
-╚══════════════════════════════════════╝
-
-── 1/6  Telegram ──
-  Token del bot: <tu-token>
-  IDs autorizados: <tu-id>
-
-── 2/6  Seguridad ──
-  PIN: <tu-pin>
-  Contraseña maestra: <auto-generada>
-
-── 3/6  Sesión y Límites ──
-  Timeout: 15 min
-  Max comandos/min: 10
-
-── 4/6  Claude Code CLI ──
-  Binario: claude
-  Directorio: /Users/tu-usuario
-
-── 5/6  Proveedores IA ──
-  OpenAI API key: <opcional>
-  Gemini API key: <opcional>
-  Anthropic API key: <opcional>
-
-── 6/6  Logging ──
-  Nivel: info
-```
-
-### Opción 2: Manual
-
-```bash
-cp .env.example .env
-# Edita .env con tus valores
-chmod 600 .env
-```
-
-## Uso
-
-### Arrancar el bot
-
-```bash
-npm start
-# o en modo desarrollo (auto-restart):
-npm run dev
-```
-
-### En Telegram
-
-1. Abre tu bot en Telegram
-2. Envía `/start` para ver los comandos
-3. Autentícate: `/auth <tu-PIN>`
-4. Envía cualquier mensaje — va al proveedor activo (Claude Code por defecto)
-5. `/ia openai` — cambia a GPT-4o
-6. `/ia gemini` — cambia a Gemini (gratis)
-7. `/ia claude` — vuelve a Claude Code
-
-### Comandos disponibles
-
-| Comando | Descripción |
+| Feature | Description |
 |---------|-------------|
-| `/start` | Muestra ayuda inicial |
-| `/auth <PIN>` | Autenticarse (el mensaje se borra automáticamente) |
-| `/ask <prompt>` | Enviar prompt al proveedor activo |
-| `/ia [nombre]` | Ver/cambiar proveedor IA (claude, openai, gemini, anthropic) |
-| `/project <ruta>` | Cambiar directorio de trabajo |
-| `/status` | Ver estado de sesión y proveedor |
-| `/history` | Ver historial de comandos (cifrado) |
-| `/kill` | Matar proceso en ejecución |
-| `/lock` | Bloquear sesión manualmente |
-| `/help` | Ver todos los comandos |
+| **Voice messages** | Send audio → transcription (Groq Whisper, free) + AI response |
+| **Photo analysis** | Send photos → Vision analysis (GPT-4o / Claude / Gemini fallback) |
+| **File processing** | Send code, CSV, PDF → AI analysis (20+ formats) |
+| **Text-to-Speech** | `/voz` toggle — receive AI responses as voice notes |
+| **Web search** | `/web <query>` — DuckDuckGo search + AI summary (no API key) |
+| **Pipelines** | `/pipe step1 → step2 → step3` — chain AI operations |
+| **Scheduled tasks** | `/schedule 24h <prompt>` — periodic AI execution |
+| **SSH remote** | `/ssh prod df -h` — execute commands on remote servers |
+| **MCP servers** | `/mcp add <name> <cmd>` — connect Model Context Protocol tools |
+| **Telegram groups** | Works in groups: responds to commands, @mentions, and replies |
+| **Conversation memory** | 20-message context per user, clear with `/clear` |
+| **Multi-project** | `/project ~/my-app` — switch working directories |
 
-También puedes escribir directamente sin `/ask` — cualquier texto se envía a Claude Code.
-
-## Arquitectura de seguridad
+### Security (8-layer model)
 
 ```
-Telegram (MTProto) → Bot → Auth Guard → Rate Limit → Claude Code
-                              ↓                          ↓
-                         PIN + Whitelist          Audit Log Cifrado
-                         + Brute-force           (AES-256-GCM)
-                           protection
+Telegram (MTProto) → Whitelist → PIN → Anti-bruteforce → Session
+                                                            ↓
+                     Auto-delete ← AES-256-GCM ← Rate limit
 ```
 
-### Capas de seguridad
+- **AES-256-GCM** authenticated encryption with HMAC-SHA256 integrity
+- **PBKDF2** key derivation (310,000 iterations + SHA-512)
+- Random 16-byte IV + 32-byte salt per message
+- Constant-time PIN comparison (timing attack prevention)
+- 5 failed attempts → 15-minute lockout
+- Encrypted audit log (append-only NDJSON)
+- Auto-delete messages (optional)
 
-1. **Capa 1 — Transporte**: Telegram usa MTProto (cifrado en tránsito)
-2. **Capa 2 — Whitelist**: Solo IDs de Telegram autorizados pueden interactuar
-3. **Capa 3 — PIN**: Autenticación por PIN con comparación en tiempo constante
-4. **Capa 4 — Anti-bruteforce**: 5 intentos fallidos → bloqueo 15 min
-5. **Capa 5 — Sesión**: Auto-lock tras inactividad configurable
-6. **Capa 6 — Rate limit**: Máximo de comandos por minuto
-7. **Capa 7 — Cifrado at rest**: Todo el audit log cifrado con AES-256-GCM + HMAC
-8. **Capa 8 — Auto-delete**: Borrado automático de mensajes (opcional)
+## Quick Start
 
-### Cifrado
+```bash
+# Clone
+git clone https://github.com/jorgevazquez-vagojo/llm-remote.git
+cd llm-remote
 
-- **Algoritmo**: AES-256-GCM (autenticado)
-- **Derivación de clave**: PBKDF2 con 310.000 iteraciones + SHA-512
-- **IV**: Aleatorio de 16 bytes por mensaje
-- **Salt**: Aleatorio de 32 bytes por mensaje
-- **Integridad**: HMAC-SHA256 sobre todo el payload
-- **Resultado**: Cada cifrado es único incluso con el mismo texto
+# Install (only 2 dependencies: grammy + dotenv)
+npm install
 
-## Estructura del proyecto
+# Configure (interactive wizard)
+npm run setup
+
+# Run
+npm start
+```
+
+Or use the corporate installer:
+
+```bash
+bash installer.sh
+```
+
+### Requirements
+
+- **Node.js 20+** — `brew install node` or [nodejs.org](https://nodejs.org)
+- **Telegram bot token** — from [@BotFather](https://t.me/BotFather)
+- **Your Telegram User ID** — send `/myid` to [@userinfobot](https://t.me/userinfobot)
+- **Claude Code CLI** (optional) — `npm i -g @anthropic-ai/claude-code`
+
+### Free API keys (optional)
+
+| Provider | URL | Why |
+|----------|-----|-----|
+| Groq | [console.groq.com/keys](https://console.groq.com/keys) | Free chat + voice transcription + TTS |
+| Gemini | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | Free chat + vision (20 req/day) |
+
+## Usage
+
+### In Telegram
+
+```
+1. /start                    → See all features
+2. /auth <PIN>               → Authenticate (message auto-deletes)
+3. "Explain closures in JS"  → AI responds with context memory
+4. /ia groq                  → Switch to Groq (free, <1s response)
+5. [send voice note]         → Transcription + AI response
+6. [send photo]              → Vision analysis
+7. /web latest React news    → Web search + AI summary
+8. /ssh prod docker ps       → Remote server command
+9. /voz                      → Toggle voice responses (TTS)
+10. /pipe search X → summarize → Pipeline execution
+```
+
+### Command Reference
+
+| Command | Description |
+|---------|-------------|
+| `/auth <PIN>` | Authenticate (auto-deletes) |
+| `/ia [name]` | View/switch AI provider |
+| `/ask <prompt>` | Explicit prompt |
+| `/clear` | Clear conversation context |
+| `/project [path]` | View/change working directory |
+| `/status` | Session, provider, TTS, SSH info |
+| `/history` | Last 15 audit log entries |
+| `/kill` | Kill running process |
+| `/lock` | Lock session |
+| `/voz` | Toggle TTS voice responses |
+| `/web <query>` | Web search + AI summary |
+| `/schedule <interval> <prompt>` | Create scheduled task |
+| `/schedules` | List scheduled tasks |
+| `/unschedule <id>` | Delete scheduled task |
+| `/pipe step1 → step2` | Execute pipeline |
+| `/mcp` | Manage MCP servers |
+| `/ssh` | SSH remote management |
+| `/help` | Show all commands |
+| *(free text)* | Send directly to active provider |
+| *(voice/photo/file)* | Transcription / Vision / Analysis |
+
+## Architecture
 
 ```
 llm-remote/
 ├── src/
-│   ├── index.js           # Punto de entrada
-│   ├── bot.js             # Bot Telegram (grammY) + handlers + /ia
-│   ├── setup.js           # Configurador interactivo por consola
-│   ├── auth/
-│   │   ├── guard.js       # Middleware de autenticación + anti-bruteforce
-│   │   └── session.js     # Gestión de sesiones + timeout
-│   ├── crypto/
-│   │   └── cipher.js      # AES-256-GCM + HMAC + PBKDF2
-│   ├── providers/
-│   │   ├── base.js        # Interfaz base de proveedores
-│   │   ├── manager.js     # Gestor multi-proveedor + /ia
-│   │   ├── claude.js      # Claude Code CLI (agentic)
-│   │   ├── openai.js      # OpenAI GPT-4o (API)
-│   │   ├── gemini.js      # Gemini 2.5 Flash (API, gratis)
-│   │   └── anthropic.js   # Anthropic Sonnet (API)
-│   ├── claude/
-│   │   └── formatter.js   # Formateo y chunking para Telegram
-│   ├── security/
-│   │   ├── ratelimit.js   # Rate limiting por usuario
-│   │   └── audit.js       # Log de auditoría cifrado
-│   └── utils/
-│       ├── config.js      # Configuración centralizada
-│       ├── logger.js      # Logger con niveles
-│       └── keygen.js      # Generador de contraseñas
-├── tests/
-│   └── crypto.test.js     # Tests del módulo de cifrado
-├── data/                  # Datos cifrados (no en git)
-├── install.sh             # Instalador completo
-├── .env.example           # Plantilla de configuración
-├── .gitignore
-└── package.json
+│   ├── index.js              # Entry point
+│   ├── bot.js                # Telegram bot + 22 handlers
+│   ├── setup.js              # Interactive configurator
+│   ├── auth/                 # Whitelist, sessions, groups
+│   ├── crypto/               # AES-256-GCM + HMAC + PBKDF2
+│   ├── providers/            # Claude, OpenAI, Gemini, Groq, Anthropic
+│   ├── context/              # Conversational memory (20 msgs)
+│   ├── media/                # Voice (Whisper), Vision, Files, TTS
+│   ├── search/               # Web search (DuckDuckGo)
+│   ├── scheduler/            # Periodic task execution
+│   ├── pipeline/             # Multi-step pipeline engine
+│   ├── mcp/                  # MCP client (JSON-RPC stdio)
+│   ├── remote/               # SSH execution + safety
+│   ├── claude/               # Telegram message chunking
+│   ├── security/             # Rate limiting + encrypted audit
+│   └── utils/                # Config, logger, keygen
+├── tests/                    # 53 tests across 7 suites
+├── docs/                     # Manuals ES/EN (HTML + PDF)
+├── installer.sh              # Corporate installer
+└── package.json              # Only 2 deps: grammy + dotenv
 ```
 
-## Variables de entorno
+**Zero native dependencies.** Only 2 production packages. Everything else uses Node.js built-ins (`node:crypto`, `node:child_process`, `fetch`).
 
-| Variable | Obligatoria | Descripción |
-|----------|:-----------:|-------------|
-| `TELEGRAM_BOT_TOKEN` | Sí | Token del bot de Telegram |
-| `AUTHORIZED_USERS` | Sí | IDs de usuario autorizados (separados por coma) |
-| `MASTER_PASSWORD` | Sí | Contraseña maestra para cifrado (min 16 chars) |
-| `AUTH_PIN` | Sí | PIN de autenticación |
-| `SESSION_TIMEOUT_MIN` | No | Timeout de sesión en minutos (default: 15) |
-| `RATE_LIMIT_PER_MIN` | No | Max comandos por minuto (default: 10) |
-| `AUTO_DELETE_SEC` | No | Auto-borrado en segundos (0 = off) |
-| `CLAUDE_BIN` | No | Ruta al binario de Claude (default: claude) |
-| `DEFAULT_WORK_DIR` | No | Directorio de trabajo por defecto |
-| `MAX_CONCURRENT` | No | Procesos Claude simultáneos (default: 2) |
-| `OPENAI_API_KEY` | No | API key de OpenAI |
-| `OPENAI_MODEL` | No | Modelo OpenAI (default: gpt-4o) |
-| `GEMINI_API_KEY` | No | API key de Google Gemini |
-| `GEMINI_MODEL` | No | Modelo Gemini (default: gemini-2.5-flash) |
-| `ANTHROPIC_API_KEY` | No | API key de Anthropic |
-| `ANTHROPIC_MODEL` | No | Modelo Anthropic (default: claude-sonnet-4) |
-| `LOG_LEVEL` | No | Nivel de log: debug/info/warn/error |
-
-## Tests
+## Testing
 
 ```bash
 npm test
+# 53 tests across 7 suites: crypto, memory, files, search, pipeline, tts, ssh
 ```
 
-## Herramientas
+## Environment Variables
 
-```bash
-# Generar contraseña maestra
-npm run keygen
+See [`.env.example`](.env.example) for all options. Key variables:
 
-# Configuración interactiva
-npm run setup
-```
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `TELEGRAM_BOT_TOKEN` | Yes | Telegram bot token |
+| `AUTHORIZED_USERS` | Yes | Comma-separated Telegram IDs |
+| `AUTH_PIN` | Yes | Authentication PIN |
+| `MASTER_PASSWORD` | Yes | Master encryption password (16+ chars) |
+| `OPENAI_API_KEY` | No | OpenAI (chat + vision + TTS) |
+| `GEMINI_API_KEY` | No | Google Gemini (free) |
+| `GROQ_API_KEY` | No | Groq (free chat + whisper + TTS) |
+| `ANTHROPIC_API_KEY` | No | Anthropic |
 
-## Licencia
+## Documentation
 
-Uso privado.
+- [Manual (Spanish)](docs/manual.html) · [PDF](docs/LLM_Remote_Manual.pdf)
+- [Manual (English)](docs/manual_en.html) · [PDF](docs/LLM_Remote_Manual_EN.pdf)
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security Policy](SECURITY.md)
+
+## License
+
+[MIT](LICENSE) — Redegal, Digital Consulting Group

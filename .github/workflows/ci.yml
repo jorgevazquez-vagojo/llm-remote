@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check syntax (import all modules)
+        run: node -e "
+          import('./src/bot.js').then(() => console.log('bot.js OK'));
+          import('./src/context/memory.js').then(() => console.log('memory.js OK'));
+          import('./src/media/tts.js').then(() => console.log('tts.js OK'));
+          import('./src/media/files.js').then(() => console.log('files.js OK'));
+          import('./src/search/web.js').then(() => console.log('web.js OK'));
+          import('./src/pipeline/pipeline.js').then(() => console.log('pipeline.js OK'));
+          import('./src/remote/ssh.js').then(() => console.log('ssh.js OK'));
+          import('./src/mcp/client.js').then(() => console.log('mcp.js OK'));
+        " --input-type=module

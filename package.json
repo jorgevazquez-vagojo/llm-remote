@@ -1,25 +1,41 @@
 {
   "name": "llm-remote",
   "version": "2.1.0",
-  "description": "Puente cifrado Telegram ↔ IA Multi-Proveedor (Claude Code, OpenAI, Gemini, Groq)",
+  "description": "Encrypted Telegram ↔ AI multi-provider bridge (Claude Code, OpenAI, Gemini, Groq, Anthropic). Voice, vision, files, SSH, TTS, pipelines, MCP.",
   "type": "module",
   "license": "MIT",
   "author": "Redegal <jorge@redegal.com> (https://www.redegal.com)",
+  "homepage": "https://github.com/jorgevazquez-vagojo/llm-remote#readme",
+  "bugs": {
+    "url": "https://github.com/jorgevazquez-vagojo/llm-remote/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/jorgevazquez-vagojo/llm-remote.git"
   },
   "keywords": [
     "telegram",
+    "telegram-bot",
     "claude",
+    "claude-code",
     "openai",
+    "gpt-4o",
     "gemini",
     "groq",
+    "anthropic",
+    "llm",
     "ai",
     "bot",
     "encrypted",
+    "aes-256-gcm",
     "remote",
-    "cli"
+    "ssh",
+    "tts",
+    "voice",
+    "vision",
+    "mcp",
+    "pipeline",
+    "multi-provider"
   ],
   "engines": {
     "node": ">=20.0.0"
