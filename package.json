@@ -1,0 +1,21 @@
+{
+  "name": "claude-remote",
+  "version": "1.0.0",
+  "description": "Encrypted Telegram bridge to control Claude Code remotely",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "setup": "node src/setup.js",
+    "test": "node --test tests/crypto.test.js",
+    "keygen": "node src/utils/keygen.js"
+  },
+  "dependencies": {
+    "grammy": "^1.31.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {}
+}
