@@ -1196,6 +1196,11 @@ export function startAutoChatLoop(bot, providers) {
             `📨 ${msg.from}: "${msg.content.substring(0, 300)}"\n\n` +
             `💬 ${SharedMemory.botName}: "${result.output.substring(0, 300)}"`
           );
+
+          // Learn from bot-to-bot exchange: extract insights from peer's message AND our reply
+          if (msg.content.length + result.output.length > 100) {
+            extractInsight(msg.content, result.output, providers, 'auto-chat').catch(() => {});
+          }
         }
 
         SharedMemory.markRead(msg.id);

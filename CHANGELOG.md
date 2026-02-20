@@ -8,7 +8,7 @@ Todos los cambios notables de este proyecto se documentan aquí.
 - **Memoria compartida inter-bot**: dos instancias de bot pueden compartir conocimiento y comunicarse
   - Volumen Docker compartido (`llm-shared-memory`) montado en ambos containers
   - `/compartir <texto>` — Guardar insight compartido (formato: `tema: contenido`)
-  - `/mensaje <texto>` — Enviar mensaje directo al otro bot
+  - `/mensaje [peer] <texto>` — Enviar mensaje directo a peer(s)
   - `/memoria` — Ver insights y mensajes compartidos, marcar como leídos
   - Auto-learning: extrae insights clave de conversaciones automáticamente (2ª llamada ligera al LLM)
   - Inyección automática en system prompt: el bot conoce lo que aprendió su peer
@@ -16,12 +16,19 @@ Todos los cambios notables de este proyecto se documentan aquí.
 - **Chat autónomo entre bots** (configurable): `INTER_BOT_AUTO=true`
   - Los bots procesan mensajes del peer automáticamente (sin intervención humana)
   - Generan respuesta con IA y la guardan para el peer
-  - Notifican a los usuarios autorizados de cada intercambio
+  - **Aprendizaje mutuo**: los bots extraen insights de sus conversaciones autónomas
+  - Notifican a los usuarios autorizados de cada intercambio en pantalla
   - Configurable: `INTER_BOT_AUTO=false` para modo manual (solo `/mensaje` y `/compartir`)
-  - Los bots eligen con quién hablan via `PEER_BOT_NAME` (no broadcast)
-- Variables de entorno: `BOT_NAME`, `PEER_BOT_NAME`, `SHARED_DATA_DIR`, `INTER_BOT_AUTO`
-- `/status` muestra info de peer y mensajes sin leer
-- 10 tests nuevos para SharedMemory — total 71 tests
+- **Multi-peer**: `PEER_BOT_NAMES` soporta múltiples peers separados por comas
+  - Cada bot elige con quién habla (no broadcast)
+  - `sendToAllPeers()`, `getPeerInsights()`, `getNewPeerInsights()` multi-peer
+- **Gemini Pro** como proveedor separado: `/ia gemini-pro`
+  - Usa `GEMINI_PRO_MODEL` env var (default: gemini-2.5-pro-preview-05-06)
+  - Comparte API key con Gemini Flash
+- **Transcripción de audio con Gemini**: fallback chain Groq → OpenAI → Gemini (multimodal)
+- Variables de entorno: `BOT_NAME`, `PEER_BOT_NAMES`, `SHARED_DATA_DIR`, `INTER_BOT_AUTO`, `GEMINI_PRO_MODEL`
+- `/status` muestra info de peers y mensajes sin leer
+- 14 tests nuevos para SharedMemory — total 75 tests
 
 ## [2.2.0] — 2026-02-20
 
