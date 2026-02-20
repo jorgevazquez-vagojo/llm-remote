@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLM Remote — Manual de Usuario</title>
+<title>LLM Remote v2.1 — Manual de Usuario</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -180,6 +180,7 @@
   .badge-free { background: var(--success); }
   .badge-paid { background: var(--warning); }
   .badge-agent { background: var(--primary); }
+  .badge-new { background: var(--blue); }
 
   /* Architecture diagram */
   .diagram {
@@ -226,42 +227,56 @@
   <div class="subtitle">Puente Cifrado Telegram ↔ IA Multi-Proveedor</div>
   <div class="org">Redegal - A Smart Company</div>
   <div class="meta">
-    <span>Versión 1.3</span>
-    <span>·</span>
+    <span>Version 2.1</span>
+    <span>&middot;</span>
     <span>Febrero 2026</span>
-    <span>·</span>
+    <span>&middot;</span>
     <span>Documento interno</span>
   </div>
 </div>
 
-<!-- ÍNDICE -->
+<!-- INDICE -->
 <div class="toc">
-  <h2>Índice</h2>
+  <h2>Indice</h2>
   <ol>
-    <li><a href="#intro">Introducción</a></li>
+    <li><a href="#intro">Introduccion</a></li>
     <li><a href="#providers">Proveedores IA</a></li>
-    <li><a href="#install">Instalación</a></li>
-    <li><a href="#config">Configuración</a></li>
+    <li><a href="#install">Instalacion</a></li>
+    <li><a href="#config">Configuracion</a></li>
     <li><a href="#usage">Uso desde Telegram</a></li>
+    <li><a href="#multimedia">Multimedia: Voz, Fotos, Archivos</a></li>
+    <li><a href="#tools">Herramientas Avanzadas</a></li>
+    <li><a href="#ssh">SSH Remoto</a></li>
+    <li><a href="#groups">Grupos de Telegram</a></li>
     <li><a href="#commands">Referencia de Comandos</a></li>
     <li><a href="#security">Arquitectura de Seguridad</a></li>
-    <li><a href="#architecture">Arquitectura Técnica</a></li>
-    <li><a href="#troubleshooting">Resolución de Problemas</a></li>
+    <li><a href="#architecture">Arquitectura Tecnica</a></li>
+    <li><a href="#troubleshooting">Resolucion de Problemas</a></li>
     <li><a href="#env">Variables de Entorno</a></li>
   </ol>
 </div>
 
-<!-- 1. INTRODUCCIÓN -->
-<h1 id="intro">1. Introducción</h1>
+<!-- 1. INTRODUCCION -->
+<h1 id="intro">1. Introduccion</h1>
 
-<p><strong>LLM Remote</strong> es una herramienta interna que permite a los miembros del equipo de Redegal interactuar con múltiples proveedores de IA (Claude Code, OpenAI, Gemini, Groq) directamente desde Telegram, con cifrado de nivel bancario.</p>
+<p><strong>LLM Remote</strong> es una herramienta interna que permite a los miembros del equipo de Redegal interactuar con multiples proveedores de IA (Claude Code, OpenAI, Gemini, Groq) directamente desde Telegram, con cifrado de nivel bancario.</p>
 
-<h3>¿Para qué sirve?</h3>
+<h3>Que puedes hacer?</h3>
 <ul>
-  <li><strong>Desarrollo remoto</strong> — Ejecuta Claude Code en tu máquina desde cualquier lugar</li>
-  <li><strong>Consultas rápidas</strong> — Pregunta a GPT-4o, Gemini o Llama desde el móvil</li>
-  <li><strong>Multi-proyecto</strong> — Cambia entre proyectos con un comando</li>
-  <li><strong>Seguro</strong> — Todo cifrado, autenticado y con audit log</li>
+  <li><strong>Desarrollo remoto</strong> &mdash; Ejecuta Claude Code en tu maquina desde cualquier lugar</li>
+  <li><strong>Consultas rapidas</strong> &mdash; Pregunta a GPT-4o, Gemini o Llama desde el movil</li>
+  <li><strong>Notas de voz</strong> &mdash; Envia un audio y recibe transcripcion + respuesta IA</li>
+  <li><strong>Analisis visual</strong> &mdash; Envia fotos y capturas para que la IA las analice</li>
+  <li><strong>Archivos</strong> &mdash; Envia codigo, CSV, PDF y la IA los procesa</li>
+  <li><strong>Busqueda web</strong> &mdash; Busca en internet y obtiene resumen con IA</li>
+  <li><strong>Pipelines</strong> &mdash; Encadena operaciones: paso1 &rarr; paso2 &rarr; paso3</li>
+  <li><strong>Tareas programadas</strong> &mdash; Ejecuta prompts periodicamente</li>
+  <li><strong>SSH remoto</strong> &mdash; Ejecuta comandos en servidores desde Telegram</li>
+  <li><strong>Text-to-Speech</strong> &mdash; Recibe respuestas como notas de voz</li>
+  <li><strong>Grupos</strong> &mdash; Usa el bot en grupos de Telegram</li>
+  <li><strong>MCP</strong> &mdash; Conecta herramientas externas via Model Context Protocol</li>
+  <li><strong>Multi-proyecto</strong> &mdash; Cambia entre proyectos con un comando</li>
+  <li><strong>Seguro</strong> &mdash; Todo cifrado, autenticado y con audit log</li>
 </ul>
 
 <div class="box box-info">
@@ -283,59 +298,59 @@
     <th>Coste</th>
   </tr>
   <tr>
-    <td>🟣 <strong>Claude Code</strong></td>
+    <td>&#x1f7e3; <strong>Claude Code</strong></td>
     <td><code>/ia claude</code></td>
     <td><span class="badge badge-agent">Agentic</span> Lee/escribe ficheros, ejecuta comandos</td>
-    <td><span class="badge badge-paid">Según plan</span></td>
+    <td><span class="badge badge-paid">Segun plan</span></td>
   </tr>
   <tr>
-    <td>🟢 <strong>OpenAI GPT-4o</strong></td>
+    <td>&#x1f7e2; <strong>OpenAI GPT-4o</strong></td>
     <td><code>/ia openai</code></td>
-    <td>Chat API</td>
+    <td>Chat API + Vision</td>
     <td><span class="badge badge-paid">Pay-per-use</span></td>
   </tr>
   <tr>
-    <td>🔵 <strong>Gemini 2.5 Flash</strong></td>
+    <td>&#x1f535; <strong>Gemini 2.5 Flash</strong></td>
     <td><code>/ia gemini</code></td>
-    <td>Chat API</td>
-    <td><span class="badge badge-free">Gratis</span> 20 req/día</td>
+    <td>Chat API + Vision</td>
+    <td><span class="badge badge-free">Gratis</span> 20 req/dia</td>
   </tr>
   <tr>
-    <td>🟠 <strong>Groq Llama 3.3</strong></td>
+    <td>&#x1f7e0; <strong>Groq Llama 3.3</strong></td>
     <td><code>/ia groq</code></td>
-    <td>Chat API (ultra-rápido)</td>
+    <td>Chat API (ultra-rapido) + Whisper TTS</td>
     <td><span class="badge badge-free">Gratis</span> 30 req/min</td>
   </tr>
   <tr>
-    <td>🟣 <strong>Anthropic Sonnet</strong></td>
+    <td>&#x1f7e3; <strong>Anthropic Sonnet</strong></td>
     <td><code>/ia anthropic</code></td>
-    <td>Chat API (sin agentic)</td>
+    <td>Chat API + Vision (sin agentic)</td>
     <td><span class="badge badge-paid">Pay-per-use</span></td>
   </tr>
 </table>
 
 <div class="box box-success">
-  <div class="box-title">Recomendación para uso diario</div>
-  Usa <strong>Groq</strong> para consultas rápidas (gratis, respuesta en &lt;1s) y <strong>Claude Code</strong> cuando necesites que la IA modifique archivos o ejecute comandos en tu máquina.
+  <div class="box-title">Recomendacion para uso diario</div>
+  Usa <strong>Groq</strong> para consultas rapidas (gratis, respuesta en &lt;1s) y <strong>Claude Code</strong> cuando necesites que la IA modifique archivos o ejecute comandos en tu maquina.
 </div>
 
 <h3>Diferencia entre Claude Code y Anthropic API</h3>
 <ul>
-  <li><strong>Claude Code</strong> (<code>/ia claude</code>) — Modo agentic completo. Puede leer ficheros, escribir código, ejecutar comandos, navegar tu proyecto. Usa el CLI de Claude Code.</li>
-  <li><strong>Anthropic API</strong> (<code>/ia anthropic</code>) — Solo chat. Responde preguntas pero no tiene acceso a tu sistema de archivos. Usa la API directamente.</li>
+  <li><strong>Claude Code</strong> (<code>/ia claude</code>) &mdash; Modo agentic completo. Puede leer ficheros, escribir codigo, ejecutar comandos, navegar tu proyecto. Usa el CLI de Claude Code.</li>
+  <li><strong>Anthropic API</strong> (<code>/ia anthropic</code>) &mdash; Solo chat. Responde preguntas pero no tiene acceso a tu sistema de archivos. Usa la API directamente.</li>
 </ul>
 
-<!-- 3. INSTALACIÓN -->
+<!-- 3. INSTALACION -->
 <div class="page-break"></div>
-<h1 id="install">3. Instalación</h1>
+<h1 id="install">3. Instalacion</h1>
 
-<h2>3.1 Instalación automática (recomendado)</h2>
+<h2>3.1 Instalacion automatica (recomendado)</h2>
 
 <p>Un solo comando que verifica requisitos, descarga, instala y configura:</p>
 
 <pre><code><span class="cmd">bash</span> installer.sh</code></pre>
 
-<p>El instalador hace todo automáticamente:</p>
+<p>El instalador hace todo automaticamente:</p>
 <ol>
   <li>Verifica Node.js 20+, npm, git, Claude Code CLI</li>
   <li>Descarga o actualiza el proyecto</li>
@@ -344,7 +359,7 @@
   <li>Opcionalmente crea un servicio de auto-arranque</li>
 </ol>
 
-<h2>3.2 Instalación manual</h2>
+<h2>3.2 Instalacion manual</h2>
 
 <pre><code><span class="comment"># 1. Clonar repositorio</span>
 <span class="cmd">git clone</span> &lt;repo-url&gt; ~/llm-remote
@@ -362,26 +377,26 @@
 <h2>3.3 Requisitos</h2>
 
 <table>
-  <tr><th>Requisito</th><th>Versión</th><th>Obligatorio</th><th>Notas</th></tr>
-  <tr><td>Node.js</td><td>20+</td><td>Sí</td><td><code>brew install node</code> o nodejs.org</td></tr>
-  <tr><td>npm</td><td>cualquiera</td><td>Sí</td><td>Viene con Node.js</td></tr>
-  <tr><td>git</td><td>cualquiera</td><td>Sí</td><td><code>xcode-select --install</code> (macOS)</td></tr>
+  <tr><th>Requisito</th><th>Version</th><th>Obligatorio</th><th>Notas</th></tr>
+  <tr><td>Node.js</td><td>20+</td><td>Si</td><td><code>brew install node</code> o nodejs.org</td></tr>
+  <tr><td>npm</td><td>cualquiera</td><td>Si</td><td>Viene con Node.js</td></tr>
+  <tr><td>git</td><td>cualquiera</td><td>Si</td><td><code>xcode-select --install</code> (macOS)</td></tr>
   <tr><td>Claude Code CLI</td><td>cualquiera</td><td>No</td><td><code>npm i -g @anthropic-ai/claude-code</code></td></tr>
 </table>
 
 <div class="box box-warn">
   <div class="box-title">Sin Claude Code CLI</div>
-  Si no instalas Claude Code CLI, el proveedor <code>/ia claude</code> no funcionará. Los demás proveedores (OpenAI, Gemini, Groq, Anthropic) sí funcionarán sin problema.
+  Si no instalas Claude Code CLI, el proveedor <code>/ia claude</code> no funcionara. Los demas proveedores (OpenAI, Gemini, Groq, Anthropic) si funcionaran sin problema.
 </div>
 
-<!-- 4. CONFIGURACIÓN -->
+<!-- 4. CONFIGURACION -->
 <div class="page-break"></div>
-<h1 id="config">4. Configuración</h1>
+<h1 id="config">4. Configuracion</h1>
 
 <h2>4.1 Crear bot de Telegram</h2>
 <ol>
   <li>Abre <strong>@BotFather</strong> en Telegram</li>
-  <li>Envía <code>/newbot</code></li>
+  <li>Envia <code>/newbot</code></li>
   <li>Elige un nombre (ej: <em>"Mi LLM Remote"</em>)</li>
   <li>Elige un username (ej: <em>"mi_llm_remote_bot"</em>)</li>
   <li>Copia el <strong>token</strong> que te da BotFather</li>
@@ -390,8 +405,8 @@
 <h2>4.2 Obtener tu Telegram User ID</h2>
 <ol>
   <li>Abre <strong>@userinfobot</strong> en Telegram</li>
-  <li>Envía <code>/myid</code></li>
-  <li>Copia el número (ej: <em>123456789</em>)</li>
+  <li>Envia <code>/myid</code></li>
+  <li>Copia el numero (ej: <em>123456789</em>)</li>
 </ol>
 
 <h2>4.3 Obtener API keys (opcional)</h2>
@@ -404,34 +419,34 @@
   <tr><td>Anthropic</td><td>https://console.anthropic.com/settings/keys</td><td>De pago</td></tr>
 </table>
 
-<h2>4.4 Wizard de configuración</h2>
+<h2>4.4 Wizard de configuracion</h2>
 
-<p>El wizard (<code>npm run setup</code>) te guía en 6 pasos:</p>
+<p>El wizard (<code>npm run setup</code>) te guia en 6 pasos:</p>
 
-<pre><code>╔══════════════════════════════════════════╗
-║   LLM Remote — Configurador          ║
-╚══════════════════════════════════════════╝
+<pre><code>&#9556;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9559;
+&#9553;   LLM Remote &mdash; Configurador          &#9553;
+&#9562;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9565;
 
-── 1/6  Telegram ──
+&#9472;&#9472; 1/6  Telegram &#9472;&#9472;
   Token del bot: &lt;pegar token&gt;
   IDs autorizados: &lt;tu user ID&gt;
 
-── 2/6  Seguridad ──
+&#9472;&#9472; 2/6  Seguridad &#9472;&#9472;
   PIN: &lt;auto-generado o personalizado&gt;
-  Contraseña maestra: &lt;auto-generada&gt;
+  Contrasena maestra: &lt;auto-generada&gt;
 
-── 3/6  Sesión y Límites ──
+&#9472;&#9472; 3/6  Sesion y Limites &#9472;&#9472;
   Timeout: 15 min
   Max comandos/min: 10
 
-── 4/6  Claude Code CLI ──
+&#9472;&#9472; 4/6  Claude Code CLI &#9472;&#9472;
   Binario: claude
   Directorio: /Users/tu-usuario
 
-── 5/6  Proveedores IA ──
+&#9472;&#9472; 5/6  Proveedores IA &#9472;&#9472;
   OpenAI, Gemini, Anthropic, Groq (opcionales)
 
-── 6/6  Logging ──
+&#9472;&#9472; 6/6  Logging &#9472;&#9472;
   Nivel: info</code></pre>
 
 <div class="box box-info">
@@ -445,19 +460,19 @@
 
 <h2>5.1 Primer uso</h2>
 <ol>
-  <li>Arranca el bot: <code>npm start</code> (o el servicio lo hace automáticamente)</li>
+  <li>Arranca el bot: <code>npm start</code> (o el servicio lo hace automaticamente)</li>
   <li>Abre tu bot en Telegram</li>
-  <li>Envía <code>/start</code> para ver los comandos</li>
-  <li>Autentícate: <code>/auth &lt;tu-PIN&gt;</code></li>
-  <li>El mensaje del PIN se borra automáticamente por seguridad</li>
-  <li>Escribe cualquier mensaje — va directamente al proveedor IA activo</li>
+  <li>Envia <code>/start</code> para ver los comandos</li>
+  <li>Autenticate: <code>/auth &lt;tu-PIN&gt;</code></li>
+  <li>El mensaje del PIN se borra automaticamente por seguridad</li>
+  <li>Escribe cualquier mensaje &mdash; va directamente al proveedor IA activo</li>
 </ol>
 
 <h2>5.2 Cambiar proveedor IA</h2>
 <pre><code><span class="comment"># Ver proveedores disponibles</span>
 /ia
 
-<span class="comment"># Cambiar a Groq (gratis, ultra-rápido)</span>
+<span class="comment"># Cambiar a Groq (gratis, ultra-rapido)</span>
 /ia groq
 
 <span class="comment"># Cambiar a Claude Code (agentic)</span>
@@ -476,8 +491,19 @@
 <span class="comment"># Ahora los comandos a Claude Code operan en ~/mi-proyecto</span>
 Refactoriza el archivo main.js</code></pre>
 
-<h2>5.4 Sesiones y seguridad</h2>
-<pre><code><span class="comment"># Ver estado de la sesión</span>
+<h2>5.4 Contexto conversacional</h2>
+<p>LLM Remote mantiene un historial de hasta <strong>20 mensajes</strong> por usuario. La IA recuerda lo que hablaste antes.</p>
+<pre><code><span class="comment"># La IA recuerda mensajes anteriores</span>
+Explica que es un closure en JavaScript
+<span class="comment"># ... respuesta ...</span>
+Dame un ejemplo practico
+<span class="comment"># ... la IA sabe que hablas de closures ...</span>
+
+<span class="comment"># Limpiar contexto cuando cambies de tema</span>
+/clear</code></pre>
+
+<h2>5.5 Sesiones y seguridad</h2>
+<pre><code><span class="comment"># Ver estado de la sesion</span>
 /status
 
 <span class="comment"># Bloquear manualmente</span>
@@ -489,14 +515,204 @@ Refactoriza el archivo main.js</code></pre>
 <span class="comment"># Ver historial (descifrado)</span>
 /history</code></pre>
 
-<!-- 6. COMANDOS -->
+<!-- 6. MULTIMEDIA -->
 <div class="page-break"></div>
-<h1 id="commands">6. Referencia de Comandos</h1>
+<h1 id="multimedia">6. Multimedia: Voz, Fotos, Archivos</h1>
+
+<h2>6.1 Notas de voz</h2>
+<p>Envia un audio o nota de voz a Telegram. El bot:</p>
+<ol>
+  <li>Transcribe el audio con <strong>Groq Whisper</strong> (gratis) o OpenAI Whisper</li>
+  <li>Muestra la transcripcion</li>
+  <li>Envia el texto al proveedor IA activo</li>
+  <li>Devuelve la respuesta (y opcionalmente como nota de voz con TTS)</li>
+</ol>
+
+<div class="box box-success">
+  <div class="box-title">Perfecto para el movil</div>
+  Graba un audio: "Explica como funciona async/await en JavaScript" y recibe la respuesta escrita. Activa <code>/voz</code> para recibirla tambien como nota de voz.
+</div>
+
+<h2>6.2 Text-to-Speech (TTS)</h2>
+<p>Activa el modo voz para recibir las respuestas como notas de voz ademas de texto:</p>
+<pre><code><span class="comment"># Activar/desactivar modo voz</span>
+/voz
+
+<span class="comment"># Ahora todas las respuestas incluyen nota de voz</span>
+Explica que es Docker en 2 frases
+<span class="comment"># Recibes texto + audio</span></code></pre>
+<p>Proveedores TTS soportados: <strong>OpenAI TTS</strong> (voz nova, formato opus) y <strong>Groq TTS</strong> (PlayAI). Se usa el primero disponible.</p>
+
+<h2>6.3 Analisis de fotos</h2>
+<p>Envia una foto o captura de pantalla. La IA la analiza con Vision:</p>
+<ul>
+  <li><strong>OpenAI GPT-4o Vision</strong> (prioridad)</li>
+  <li><strong>Anthropic Claude Vision</strong> (fallback)</li>
+  <li><strong>Google Gemini Vision</strong> (fallback)</li>
+</ul>
+<pre><code><span class="comment"># Envia una foto con caption opcional</span>
+[foto] Que error hay en este codigo?
+
+<span class="comment"># O envia sin caption para analisis general</span>
+[foto]</code></pre>
+
+<h2>6.4 Procesamiento de archivos</h2>
+<p>Envia archivos de codigo, texto, datos o PDF. El bot extrae el contenido y lo envia a la IA.</p>
+
+<table>
+  <tr><th>Tipo</th><th>Extensiones</th></tr>
+  <tr><td>Codigo</td><td>.js, .ts, .py, .go, .rs, .java, .c, .cpp, .rb, .php, .swift, .kt, .sh, .bash</td></tr>
+  <tr><td>Datos</td><td>.csv, .json, .yaml, .yml, .xml, .toml</td></tr>
+  <tr><td>Texto</td><td>.md, .txt, .log, .html, .css, .sql, .env, .conf, .ini, .cfg</td></tr>
+  <tr><td>Documentos</td><td>.pdf (extraccion basica de texto)</td></tr>
+</table>
+
+<p>Limite: <strong>5 MB</strong> por archivo. CSV muestra las primeras 50 filas como preview.</p>
+
+<!-- 7. HERRAMIENTAS -->
+<div class="page-break"></div>
+<h1 id="tools">7. Herramientas Avanzadas</h1>
+
+<h2>7.1 Busqueda web</h2>
+<p>Busca en internet y obtiene un resumen con IA. No necesita API key (usa DuckDuckGo).</p>
+<pre><code><span class="comment"># Buscar y resumir</span>
+/web novedades Node.js 22
+
+<span class="comment"># Buscar noticias</span>
+/web ultimas noticias inteligencia artificial 2026</code></pre>
+
+<h2>7.2 Tareas programadas</h2>
+<p>Ejecuta prompts automaticamente a intervalos regulares.</p>
+<pre><code><span class="comment"># Crear tarea cada 24 horas</span>
+/schedule 24h Resume el estado de los repos
+
+<span class="comment"># Crear tarea cada hora</span>
+/schedule 1h Revisa si hay errores en los logs
+
+<span class="comment"># Intervalos soportados: 5m, 30m, 1h, 6h, 24h, 7d</span>
+
+<span class="comment"># Listar tareas</span>
+/schedules
+
+<span class="comment"># Eliminar tarea</span>
+/unschedule 3</code></pre>
+
+<h2>7.3 Pipelines</h2>
+<p>Encadena multiples operaciones donde la salida de un paso alimenta al siguiente:</p>
+<pre><code><span class="comment"># Buscar + resumir</span>
+/pipe busca tendencias React 2026 &rarr; resume en 3 puntos clave
+
+<span class="comment"># Analizar + sugerir + redactar</span>
+/pipe lee el README del proyecto &rarr; sugiere mejoras &rarr; redacta un PR
+
+<span class="comment"># Datos + estadisticas + formato</span>
+/pipe analiza este CSV &rarr; genera estadisticas &rarr; formatea como tabla markdown</code></pre>
+<p>Separadores validos: <code>&rarr;</code>, <code>|</code>, <code>&gt;</code></p>
+
+<h2>7.4 Servidores MCP</h2>
+<p>Conecta herramientas externas via <strong>Model Context Protocol</strong>:</p>
+<pre><code><span class="comment"># Anadir servidor MCP</span>
+/mcp add github npx -y @modelcontextprotocol/server-github
+
+<span class="comment"># Ver herramientas disponibles</span>
+/mcp tools
+
+<span class="comment"># Ejecutar herramienta</span>
+/mcp call github/list_repos {"owner": "redegal"}
+
+<span class="comment"># Ver servidores conectados</span>
+/mcp
+
+<span class="comment"># Eliminar servidor</span>
+/mcp remove github</code></pre>
+
+<!-- 8. SSH -->
+<div class="page-break"></div>
+<h1 id="ssh">8. SSH Remoto</h1>
+
+<p>Ejecuta comandos en servidores remotos directamente desde Telegram. Usa SSH nativo (sin dependencias adicionales).</p>
+
+<h2>8.1 Configurar servidores</h2>
+<pre><code><span class="comment"># Anadir servidor</span>
+/ssh add prod root@37.27.92.122
+/ssh add staging deploy@staging.example.com 2222
+
+<span class="comment"># Formato completo</span>
+/ssh add &lt;nombre&gt; &lt;user@host&gt; [puerto] [ruta-clave-ssh]
+
+<span class="comment"># Listar servidores</span>
+/ssh list
+
+<span class="comment"># Eliminar servidor</span>
+/ssh remove prod</code></pre>
+
+<h2>8.2 Ejecutar comandos</h2>
+<pre><code><span class="comment"># Espacio en disco</span>
+/ssh prod df -h
+
+<span class="comment"># Estado de contenedores Docker</span>
+/ssh prod docker ps
+
+<span class="comment"># Ultimas lineas del log</span>
+/ssh prod tail -20 /var/log/syslog
+
+<span class="comment"># Estado del sistema</span>
+/ssh prod uptime && free -h</code></pre>
+
+<h2>8.3 Seguridad SSH</h2>
+
+<div class="box box-danger">
+  <div class="box-title">Comandos bloqueados</div>
+  Los siguientes comandos estan bloqueados por seguridad:
+  <ul>
+    <li><code>rm -rf /</code> (borrado raiz)</li>
+    <li><code>mkfs</code> (formatear disco)</li>
+    <li><code>dd if=</code> (escritura directa a disco)</li>
+    <li><code>shutdown</code>, <code>reboot</code>, <code>init 0</code></li>
+  </ul>
+</div>
+
+<p>Otras medidas de seguridad:</p>
+<ul>
+  <li>Timeout de <strong>30 segundos</strong> por comando</li>
+  <li>Salida truncada a 4000 caracteres</li>
+  <li><code>BatchMode=yes</code> (sin prompts interactivos)</li>
+  <li>Todos los comandos quedan en el audit log</li>
+  <li>Configuracion persistente en <code>data/ssh-servers.json</code></li>
+</ul>
+
+<!-- 9. GRUPOS -->
+<div class="page-break"></div>
+<h1 id="groups">9. Grupos de Telegram</h1>
+
+<p>LLM Remote funciona en grupos y supergrupos de Telegram. En grupos, el bot solo responde a:</p>
+
+<ul>
+  <li><strong>Comandos</strong> &mdash; <code>/status</code>, <code>/ia groq</code>, etc.</li>
+  <li><strong>Menciones</strong> &mdash; <code>@mi_bot Explica esto</code></li>
+  <li><strong>Respuestas al bot</strong> &mdash; Responde a un mensaje del bot</li>
+  <li><strong>Media</strong> &mdash; Fotos, audios y archivos enviados en el grupo</li>
+</ul>
+
+<p>Los mensajes normales del grupo se ignoran para no saturar la conversacion.</p>
+
+<div class="box box-info">
+  <div class="box-title">Configurar grupo</div>
+  <ol>
+    <li>Anade el bot al grupo</li>
+    <li>Todos los usuarios autorizados (whitelist) pueden usarlo</li>
+    <li>Usuarios no autorizados son ignorados silenciosamente</li>
+  </ol>
+</div>
+
+<!-- 10. COMANDOS -->
+<div class="page-break"></div>
+<h1 id="commands">10. Referencia de Comandos</h1>
 
 <table>
   <tr>
     <th>Comando</th>
-    <th>Descripción</th>
+    <th>Descripcion</th>
     <th>Ejemplo</th>
   </tr>
   <tr>
@@ -506,18 +722,23 @@ Refactoriza el archivo main.js</code></pre>
   </tr>
   <tr>
     <td><code>/auth &lt;PIN&gt;</code></td>
-    <td>Autenticarse. El mensaje se borra automáticamente.</td>
-    <td><code>/auth &lt;tu-PIN&gt;</code></td>
+    <td>Autenticarse. El mensaje se borra automaticamente.</td>
+    <td><code>/auth 1234</code></td>
   </tr>
   <tr>
     <td><code>/ask &lt;prompt&gt;</code></td>
-    <td>Enviar prompt explícito al proveedor activo</td>
-    <td><code>/ask explica qué hace este regex</code></td>
+    <td>Enviar prompt explicito al proveedor activo</td>
+    <td><code>/ask explica que hace este regex</code></td>
   </tr>
   <tr>
     <td><code>/ia [nombre]</code></td>
     <td>Ver o cambiar proveedor IA</td>
     <td><code>/ia groq</code></td>
+  </tr>
+  <tr>
+    <td><code>/clear</code></td>
+    <td>Limpiar contexto conversacional (20 msgs)</td>
+    <td><code>/clear</code></td>
   </tr>
   <tr>
     <td><code>/project [ruta]</code></td>
@@ -526,23 +747,63 @@ Refactoriza el archivo main.js</code></pre>
   </tr>
   <tr>
     <td><code>/status</code></td>
-    <td>Info de sesión, proveedor y proceso</td>
+    <td>Info de sesion, proveedor, TTS, SSH</td>
     <td><code>/status</code></td>
   </tr>
   <tr>
     <td><code>/history</code></td>
-    <td>Últimos 15 comandos (descifrado del audit log)</td>
+    <td>Ultimos 15 comandos del audit log</td>
     <td><code>/history</code></td>
   </tr>
   <tr>
     <td><code>/kill</code></td>
-    <td>Matar proceso Claude Code en ejecución</td>
+    <td>Matar proceso en ejecucion</td>
     <td><code>/kill</code></td>
   </tr>
   <tr>
     <td><code>/lock</code></td>
-    <td>Bloquear sesión inmediatamente</td>
+    <td>Bloquear sesion inmediatamente</td>
     <td><code>/lock</code></td>
+  </tr>
+  <tr>
+    <td><code>/voz</code></td>
+    <td><span class="badge badge-new">Nuevo</span> Activar/desactivar respuestas por voz (TTS)</td>
+    <td><code>/voz</code></td>
+  </tr>
+  <tr>
+    <td><code>/web &lt;query&gt;</code></td>
+    <td>Busqueda web + resumen IA</td>
+    <td><code>/web novedades React 2026</code></td>
+  </tr>
+  <tr>
+    <td><code>/schedule</code></td>
+    <td>Crear tarea programada</td>
+    <td><code>/schedule 24h Resumen diario</code></td>
+  </tr>
+  <tr>
+    <td><code>/schedules</code></td>
+    <td>Listar tareas programadas</td>
+    <td><code>/schedules</code></td>
+  </tr>
+  <tr>
+    <td><code>/unschedule &lt;id&gt;</code></td>
+    <td>Eliminar tarea programada</td>
+    <td><code>/unschedule 3</code></td>
+  </tr>
+  <tr>
+    <td><code>/pipe</code></td>
+    <td>Ejecutar pipeline de pasos</td>
+    <td><code>/pipe busca X &rarr; resume</code></td>
+  </tr>
+  <tr>
+    <td><code>/mcp</code></td>
+    <td>Gestionar servidores MCP</td>
+    <td><code>/mcp add github npx ...</code></td>
+  </tr>
+  <tr>
+    <td><code>/ssh</code></td>
+    <td><span class="badge badge-new">Nuevo</span> SSH remoto: add, list, remove, ejecutar</td>
+    <td><code>/ssh prod df -h</code></td>
   </tr>
   <tr>
     <td><code>/help</code></td>
@@ -551,146 +812,183 @@ Refactoriza el archivo main.js</code></pre>
   </tr>
   <tr>
     <td><em>(texto libre)</em></td>
-    <td>Se envía directamente al proveedor activo</td>
-    <td><em>¿Cómo optimizo esta query SQL?</em></td>
+    <td>Se envia directamente al proveedor activo</td>
+    <td><em>Como optimizo esta query SQL?</em></td>
+  </tr>
+  <tr>
+    <td><em>(audio)</em></td>
+    <td>Transcripcion + envio a IA</td>
+    <td><em>[nota de voz]</em></td>
+  </tr>
+  <tr>
+    <td><em>(foto)</em></td>
+    <td>Analisis visual con Vision</td>
+    <td><em>[captura de pantalla]</em></td>
+  </tr>
+  <tr>
+    <td><em>(archivo)</em></td>
+    <td>Extraccion + analisis con IA</td>
+    <td><em>[archivo.csv]</em></td>
   </tr>
 </table>
 
-<!-- 7. SEGURIDAD -->
+<!-- 11. SEGURIDAD -->
 <div class="page-break"></div>
-<h1 id="security">7. Arquitectura de Seguridad</h1>
+<h1 id="security">11. Arquitectura de Seguridad</h1>
 
-<h2>7.1 Modelo de 8 capas</h2>
+<h2>11.1 Modelo de 8 capas</h2>
 
 <div class="diagram">
-  Telegram App                           Tu Máquina
-  ┌──────────┐    MTProto (cifrado)    ┌──────────────────────────────────────┐
-  │  Usuario  │ ◄──────────────────►   │  LLM Remote Bot                   │
-  │           │                        │                                      │
-  │  /auth    │    Capa 1: Transporte  │  Capa 2: Whitelist (Telegram ID)     │
-  │  PIN ━━━━━┿━━━━━━━━━━━━━━━━━━━━►  │  Capa 3: PIN (tiempo-constante)      │
-  │           │                        │  Capa 4: Anti-bruteforce (5 → lock)  │
-  │  Mensaje  │                        │  Capa 5: Sesión (auto-lock timeout)  │
-  │  ━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━►  │  Capa 6: Rate limit (N/min)         │
-  │           │                        │  Capa 7: Cifrado AES-256-GCM        │
-  │  ◄━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━   │  Capa 8: Auto-delete (opcional)     │
-  │ Respuesta │                        │                                      │
-  └──────────┘                         │  ┌─────────────┐ ┌──────────────┐   │
-                                       │  │ Claude Code  │ │ OpenAI/      │   │
-                                       │  │ CLI (agentic)│ │ Gemini/Groq  │   │
-                                       │  └─────────────┘ └──────────────┘   │
-                                       │                                      │
-                                       │  📁 Audit Log (AES-256-GCM + HMAC)  │
-                                       └──────────────────────────────────────┘</div>
+  Telegram App                           Tu Maquina
+  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;    MTProto (cifrado)    &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+  &#9474;  Usuario  &#9474; &#9668;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9658;   &#9474;  LLM Remote Bot v2.1                &#9474;
+  &#9474;           &#9474;                        &#9474;                                      &#9474;
+  &#9474;  /auth    &#9474;    Capa 1: Transporte  &#9474;  Capa 2: Whitelist (Telegram ID)     &#9474;
+  &#9474;  PIN      &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9658;  &#9474;  Capa 3: PIN (tiempo-constante)      &#9474;
+  &#9474;           &#9474;                        &#9474;  Capa 4: Anti-bruteforce (5 &rarr; lock)  &#9474;
+  &#9474;  Mensaje  &#9474;                        &#9474;  Capa 5: Sesion (auto-lock timeout)   &#9474;
+  &#9474;           &#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9658;  &#9474;  Capa 6: Rate limit (N/min)          &#9474;
+  &#9474;           &#9474;                        &#9474;  Capa 7: Cifrado AES-256-GCM         &#9474;
+  &#9474; &#9668;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9474;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;   &#9474;  Capa 8: Auto-delete (opcional)      &#9474;
+  &#9474; Respuesta &#9474;                        &#9474;                                      &#9474;
+  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;                        &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488; &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9474;
+                                       &#9474;  &#9474; Claude Code &#9474; &#9474; OpenAI/Gemini &#9474;  &#9474;
+                                       &#9474;  &#9474; (agentic)   &#9474; &#9474; Groq/Anthro  &#9474;  &#9474;
+                                       &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496; &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9474;
+                                       &#9474;                                      &#9474;
+                                       &#9474;  Audit Log (AES-256-GCM + HMAC)      &#9474;
+                                       &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</div>
 
-<h2>7.2 Cifrado</h2>
+<h2>11.2 Cifrado</h2>
 
 <table>
-  <tr><th>Componente</th><th>Especificación</th></tr>
+  <tr><th>Componente</th><th>Especificacion</th></tr>
   <tr><td>Algoritmo</td><td>AES-256-GCM (cifrado autenticado)</td></tr>
-  <tr><td>Derivación de clave</td><td>PBKDF2 con 310.000 iteraciones + SHA-512</td></tr>
-  <tr><td>IV (vector de inicialización)</td><td>16 bytes aleatorios por mensaje</td></tr>
+  <tr><td>Derivacion de clave</td><td>PBKDF2 con 310.000 iteraciones + SHA-512</td></tr>
+  <tr><td>IV (vector de inicializacion)</td><td>16 bytes aleatorios por mensaje</td></tr>
   <tr><td>Salt</td><td>32 bytes aleatorios por mensaje</td></tr>
   <tr><td>Integridad</td><td>HMAC-SHA256 sobre todo el payload</td></tr>
-  <tr><td>Resultado</td><td>Cada cifrado es único, incluso con el mismo texto</td></tr>
+  <tr><td>Resultado</td><td>Cada cifrado es unico, incluso con el mismo texto</td></tr>
 </table>
 
-<h2>7.3 Autenticación</h2>
+<h2>11.3 Autenticacion</h2>
 <ul>
-  <li><strong>Whitelist</strong> — Solo los Telegram IDs configurados pueden interactuar. Usuarios no autorizados son ignorados silenciosamente.</li>
-  <li><strong>PIN</strong> — Comparación en tiempo constante para prevenir ataques de timing.</li>
-  <li><strong>Anti-bruteforce</strong> — 5 intentos fallidos → bloqueo de 15 minutos.</li>
-  <li><strong>Sesiones</strong> — Auto-lock tras inactividad configurable (default: 15 min).</li>
-  <li><strong>Auto-delete</strong> — El mensaje con el PIN se borra automáticamente de Telegram.</li>
+  <li><strong>Whitelist</strong> &mdash; Solo los Telegram IDs configurados pueden interactuar. Usuarios no autorizados son ignorados silenciosamente.</li>
+  <li><strong>PIN</strong> &mdash; Comparacion en tiempo constante para prevenir ataques de timing.</li>
+  <li><strong>Anti-bruteforce</strong> &mdash; 5 intentos fallidos &rarr; bloqueo de 15 minutos.</li>
+  <li><strong>Sesiones</strong> &mdash; Auto-lock tras inactividad configurable (default: 15 min).</li>
+  <li><strong>Auto-delete</strong> &mdash; El mensaje con el PIN se borra automaticamente de Telegram.</li>
 </ul>
 
 <div class="box box-danger">
-  <div class="box-title">Importante: Seguridad por instalación</div>
-  Cada instalación genera su propia contraseña maestra de cifrado. Las claves no se comparten entre usuarios. Si pierdes tu <code>.env</code>, no hay forma de recuperar los datos del audit log.
+  <div class="box-title">Importante: Seguridad por instalacion</div>
+  Cada instalacion genera su propia contrasena maestra de cifrado. Las claves no se comparten entre usuarios. Si pierdes tu <code>.env</code>, no hay forma de recuperar los datos del audit log.
 </div>
 
-<!-- 8. ARQUITECTURA -->
+<!-- 12. ARQUITECTURA -->
 <div class="page-break"></div>
-<h1 id="architecture">8. Arquitectura Técnica</h1>
+<h1 id="architecture">12. Arquitectura Tecnica</h1>
 
-<h2>8.1 Stack tecnológico</h2>
+<h2>12.1 Stack tecnologico</h2>
 
 <table>
-  <tr><th>Componente</th><th>Tecnología</th><th>Justificación</th></tr>
+  <tr><th>Componente</th><th>Tecnologia</th><th>Justificacion</th></tr>
   <tr><td>Runtime</td><td>Node.js 20+</td><td>Async/await nativo, fetch nativo, sin dependencias nativas</td></tr>
   <tr><td>Bot Telegram</td><td>grammY</td><td>Framework moderno, TypeScript-ready, middleware</td></tr>
-  <tr><td>Cifrado</td><td>node:crypto</td><td>Módulo nativo, AES-256-GCM, PBKDF2, HMAC</td></tr>
-  <tr><td>APIs IA</td><td>fetch nativo</td><td>Zero dependencias, HTTP estándar</td></tr>
-  <tr><td>Configuración</td><td>dotenv</td><td>Estándar de la industria</td></tr>
-  <tr><td>Audit log</td><td>NDJSON cifrado</td><td>Append-only, sin BD, portátil</td></tr>
+  <tr><td>Cifrado</td><td>node:crypto</td><td>Modulo nativo, AES-256-GCM, PBKDF2, HMAC</td></tr>
+  <tr><td>APIs IA</td><td>fetch nativo</td><td>Zero dependencias, HTTP estandar</td></tr>
+  <tr><td>Transcripcion</td><td>Groq Whisper / OpenAI Whisper</td><td>Groq gratis, OpenAI fallback</td></tr>
+  <tr><td>Vision</td><td>GPT-4o / Claude / Gemini</td><td>Triple fallback para maxima disponibilidad</td></tr>
+  <tr><td>TTS</td><td>OpenAI TTS / Groq TTS</td><td>Dual fallback</td></tr>
+  <tr><td>SSH</td><td>ssh nativo (child_process)</td><td>Zero dependencias, usa claves del sistema</td></tr>
+  <tr><td>Busqueda web</td><td>DuckDuckGo scraping</td><td>Sin API key, gratis</td></tr>
+  <tr><td>Configuracion</td><td>dotenv</td><td>Estandar de la industria</td></tr>
+  <tr><td>Audit log</td><td>NDJSON cifrado</td><td>Append-only, sin BD, portatil</td></tr>
 </table>
 
-<h2>8.2 Estructura del proyecto</h2>
+<h2>12.2 Estructura del proyecto</h2>
 
 <pre><code>llm-remote/
-├── src/
-│   ├── index.js              <span class="comment"># Punto de entrada</span>
-│   ├── bot.js                <span class="comment"># Bot Telegram + handlers</span>
-│   ├── setup.js              <span class="comment"># Configurador interactivo</span>
-│   ├── auth/
-│   │   ├── guard.js          <span class="comment"># Whitelist + anti-bruteforce</span>
-│   │   └── session.js        <span class="comment"># Sesiones + timeout</span>
-│   ├── crypto/
-│   │   └── cipher.js         <span class="comment"># AES-256-GCM + HMAC + PBKDF2</span>
-│   ├── providers/
-│   │   ├── base.js           <span class="comment"># Interfaz base</span>
-│   │   ├── manager.js        <span class="comment"># Gestor multi-proveedor</span>
-│   │   ├── claude.js         <span class="comment"># Claude Code CLI</span>
-│   │   ├── openai.js         <span class="comment"># OpenAI GPT-4o</span>
-│   │   ├── gemini.js         <span class="comment"># Google Gemini</span>
-│   │   ├── groq.js           <span class="comment"># Groq Llama 3.3</span>
-│   │   └── anthropic.js      <span class="comment"># Anthropic Sonnet</span>
-│   ├── claude/
-│   │   └── formatter.js      <span class="comment"># Chunking para Telegram</span>
-│   ├── security/
-│   │   ├── ratelimit.js      <span class="comment"># Rate limiting</span>
-│   │   └── audit.js          <span class="comment"># Audit log cifrado</span>
-│   └── utils/
-│       ├── config.js         <span class="comment"># Configuración</span>
-│       ├── logger.js         <span class="comment"># Logger</span>
-│       └── keygen.js         <span class="comment"># Generador de claves</span>
-├── tests/
-│   └── crypto.test.js        <span class="comment"># 11 tests de cifrado</span>
-├── installer.sh              <span class="comment"># Instalador corporativo</span>
-├── .env.example              <span class="comment"># Plantilla de config</span>
-└── package.json</code></pre>
+&#9500;&#9472;&#9472; src/
+&#9474;   &#9500;&#9472;&#9472; index.js              <span class="comment"># Punto de entrada</span>
+&#9474;   &#9500;&#9472;&#9472; bot.js                <span class="comment"># Bot Telegram + handlers</span>
+&#9474;   &#9500;&#9472;&#9472; setup.js              <span class="comment"># Configurador interactivo</span>
+&#9474;   &#9500;&#9472;&#9472; auth/
+&#9474;   &#9474;   &#9500;&#9472;&#9472; guard.js          <span class="comment"># Whitelist + anti-bruteforce + grupos</span>
+&#9474;   &#9474;   &#9492;&#9472;&#9472; session.js        <span class="comment"># Sesiones + timeout</span>
+&#9474;   &#9500;&#9472;&#9472; crypto/
+&#9474;   &#9474;   &#9492;&#9472;&#9472; cipher.js         <span class="comment"># AES-256-GCM + HMAC + PBKDF2</span>
+&#9474;   &#9500;&#9472;&#9472; providers/
+&#9474;   &#9474;   &#9500;&#9472;&#9472; base.js           <span class="comment"># Interfaz base</span>
+&#9474;   &#9474;   &#9500;&#9472;&#9472; manager.js        <span class="comment"># Gestor multi-proveedor</span>
+&#9474;   &#9474;   &#9500;&#9472;&#9472; claude.js         <span class="comment"># Claude Code CLI</span>
+&#9474;   &#9474;   &#9500;&#9472;&#9472; openai.js         <span class="comment"># OpenAI GPT-4o</span>
+&#9474;   &#9474;   &#9500;&#9472;&#9472; gemini.js         <span class="comment"># Google Gemini</span>
+&#9474;   &#9474;   &#9500;&#9472;&#9472; groq.js           <span class="comment"># Groq Llama 3.3</span>
+&#9474;   &#9474;   &#9492;&#9472;&#9472; anthropic.js      <span class="comment"># Anthropic Sonnet</span>
+&#9474;   &#9500;&#9472;&#9472; context/
+&#9474;   &#9474;   &#9492;&#9472;&#9472; memory.js         <span class="comment"># Memoria conversacional (20 msgs)</span>
+&#9474;   &#9500;&#9472;&#9472; media/
+&#9474;   &#9474;   &#9500;&#9472;&#9472; voice.js          <span class="comment"># Transcripcion (Whisper)</span>
+&#9474;   &#9474;   &#9500;&#9472;&#9472; vision.js         <span class="comment"># Analisis de imagenes (Vision)</span>
+&#9474;   &#9474;   &#9500;&#9472;&#9472; files.js          <span class="comment"># Procesamiento de archivos</span>
+&#9474;   &#9474;   &#9492;&#9472;&#9472; tts.js            <span class="comment"># Text-to-Speech</span>
+&#9474;   &#9500;&#9472;&#9472; search/
+&#9474;   &#9474;   &#9492;&#9472;&#9472; web.js            <span class="comment"># Busqueda web (DuckDuckGo)</span>
+&#9474;   &#9500;&#9472;&#9472; scheduler/
+&#9474;   &#9474;   &#9492;&#9472;&#9472; scheduler.js      <span class="comment"># Tareas programadas</span>
+&#9474;   &#9500;&#9472;&#9472; pipeline/
+&#9474;   &#9474;   &#9492;&#9472;&#9472; pipeline.js       <span class="comment"># Motor de pipelines</span>
+&#9474;   &#9500;&#9472;&#9472; mcp/
+&#9474;   &#9474;   &#9492;&#9472;&#9472; client.js         <span class="comment"># Cliente MCP (JSON-RPC stdio)</span>
+&#9474;   &#9500;&#9472;&#9472; remote/
+&#9474;   &#9474;   &#9492;&#9472;&#9472; ssh.js            <span class="comment"># SSH remoto + seguridad</span>
+&#9474;   &#9500;&#9472;&#9472; claude/
+&#9474;   &#9474;   &#9492;&#9472;&#9472; formatter.js      <span class="comment"># Chunking para Telegram</span>
+&#9474;   &#9500;&#9472;&#9472; security/
+&#9474;   &#9474;   &#9500;&#9472;&#9472; ratelimit.js      <span class="comment"># Rate limiting</span>
+&#9474;   &#9474;   &#9492;&#9472;&#9472; audit.js          <span class="comment"># Audit log cifrado</span>
+&#9474;   &#9492;&#9472;&#9472; utils/
+&#9474;       &#9500;&#9472;&#9472; config.js         <span class="comment"># Configuracion</span>
+&#9474;       &#9500;&#9472;&#9472; logger.js         <span class="comment"># Logger</span>
+&#9474;       &#9492;&#9472;&#9472; keygen.js         <span class="comment"># Generador de claves</span>
+&#9500;&#9472;&#9472; tests/                    <span class="comment"># 53 tests (crypto, memory, files, search, pipeline, tts, ssh)</span>
+&#9500;&#9472;&#9472; docs/                     <span class="comment"># Manuales ES/EN (HTML + PDF)</span>
+&#9500;&#9472;&#9472; installer.sh              <span class="comment"># Instalador corporativo</span>
+&#9500;&#9472;&#9472; .env.example              <span class="comment"># Plantilla de config</span>
+&#9492;&#9472;&#9472; package.json</code></pre>
 
-<h2>8.3 Dependencias</h2>
+<h2>12.3 Dependencias</h2>
 
-<p>Solo <strong>2 dependencias</strong> de producción (zero nativas):</p>
+<p>Solo <strong>2 dependencias</strong> de produccion (zero nativas):</p>
 <table>
-  <tr><th>Paquete</th><th>Versión</th><th>Función</th></tr>
+  <tr><th>Paquete</th><th>Version</th><th>Funcion</th></tr>
   <tr><td>grammy</td><td>^1.31</td><td>Framework bot Telegram</td></tr>
   <tr><td>dotenv</td><td>^16.4</td><td>Variables de entorno</td></tr>
 </table>
 
-<!-- 9. TROUBLESHOOTING -->
+<!-- 13. TROUBLESHOOTING -->
 <div class="page-break"></div>
-<h1 id="troubleshooting">9. Resolución de Problemas</h1>
+<h1 id="troubleshooting">13. Resolucion de Problemas</h1>
 
 <table>
   <tr>
     <th>Problema</th>
     <th>Causa</th>
-    <th>Solución</th>
+    <th>Solucion</th>
   </tr>
   <tr>
     <td>El bot no responde</td>
-    <td>No está corriendo o token incorrecto</td>
+    <td>No esta corriendo o token incorrecto</td>
     <td>Verificar <code>npm start</code> y el token en <code>.env</code></td>
   </tr>
   <tr>
-    <td>"Session expired"</td>
+    <td>"Sesion expirada"</td>
     <td>Timeout de inactividad</td>
     <td>Enviar <code>/auth &lt;PIN&gt;</code> de nuevo</td>
   </tr>
   <tr>
-    <td>"Locked out"</td>
+    <td>"Bloqueado"</td>
     <td>5 intentos de PIN fallidos</td>
     <td>Esperar 15 minutos</td>
   </tr>
@@ -702,7 +1000,7 @@ Refactoriza el archivo main.js</code></pre>
   <tr>
     <td>"Provider not configured"</td>
     <td>Falta API key del proveedor</td>
-    <td>Ejecutar <code>npm run setup</code> y añadir la API key</td>
+    <td>Ejecutar <code>npm run setup</code> y anadir la API key</td>
   </tr>
   <tr>
     <td>Claude Code no funciona</td>
@@ -711,13 +1009,38 @@ Refactoriza el archivo main.js</code></pre>
   </tr>
   <tr>
     <td>Gemini error 429</td>
-    <td>Límite diario alcanzado (20 req)</td>
+    <td>Limite diario alcanzado (20 req)</td>
     <td>Cambiar a Groq: <code>/ia groq</code></td>
+  </tr>
+  <tr>
+    <td>TTS no funciona</td>
+    <td>Sin API key de OpenAI ni Groq</td>
+    <td>Configurar al menos una API key de OpenAI o Groq</td>
+  </tr>
+  <tr>
+    <td>Voz no transcribe</td>
+    <td>Sin API key de Groq ni OpenAI</td>
+    <td>Groq es gratis: obtener key en console.groq.com</td>
+  </tr>
+  <tr>
+    <td>SSH timeout</td>
+    <td>Servidor no accesible o clave SSH incorrecta</td>
+    <td>Verificar conectividad y que las claves SSH estan configuradas</td>
+  </tr>
+  <tr>
+    <td>SSH "comando bloqueado"</td>
+    <td>Comando peligroso detectado</td>
+    <td>Proteccion de seguridad, no se puede desactivar</td>
+  </tr>
+  <tr>
+    <td>Bot no responde en grupo</td>
+    <td>Solo responde a comandos/menciones</td>
+    <td>Mencionar @bot o responder a un mensaje del bot</td>
   </tr>
   <tr>
     <td>Error de cifrado</td>
     <td>.env corrupto o cambiado</td>
-    <td>El audit log anterior no será legible. Borrar <code>data/</code> y empezar de nuevo.</td>
+    <td>El audit log anterior no sera legible. Borrar <code>data/</code> y empezar de nuevo.</td>
   </tr>
 </table>
 
@@ -734,45 +1057,49 @@ Refactoriza el archivo main.js</code></pre>
 <h3>Reconfigurar</h3>
 <pre><code><span class="cmd">cd</span> ~/llm-remote && <span class="cmd">npm run</span> setup</code></pre>
 
+<h3>Tests</h3>
+<pre><code><span class="comment"># Ejecutar los 53 tests</span>
+<span class="cmd">npm test</span></code></pre>
+
 <h3>Desinstalar</h3>
 <pre><code><span class="cmd">bash</span> ~/llm-remote/installer.sh --uninstall</code></pre>
 
-<!-- 10. VARIABLES -->
+<!-- 14. VARIABLES -->
 <div class="page-break"></div>
-<h1 id="env">10. Variables de Entorno</h1>
+<h1 id="env">14. Variables de Entorno</h1>
 
 <table>
   <tr>
     <th>Variable</th>
     <th>Req.</th>
     <th>Default</th>
-    <th>Descripción</th>
+    <th>Descripcion</th>
   </tr>
-  <tr><td><code>TELEGRAM_BOT_TOKEN</code></td><td>Sí</td><td>—</td><td>Token del bot de Telegram</td></tr>
-  <tr><td><code>AUTHORIZED_USERS</code></td><td>Sí</td><td>—</td><td>IDs Telegram autorizados (coma)</td></tr>
-  <tr><td><code>AUTH_PIN</code></td><td>Sí</td><td>—</td><td>PIN de autenticación</td></tr>
-  <tr><td><code>MASTER_PASSWORD</code></td><td>Sí</td><td>—</td><td>Contraseña maestra cifrado (16+ chars)</td></tr>
-  <tr><td><code>SESSION_TIMEOUT_MIN</code></td><td>No</td><td>15</td><td>Timeout sesión (minutos)</td></tr>
+  <tr><td><code>TELEGRAM_BOT_TOKEN</code></td><td>Si</td><td>&mdash;</td><td>Token del bot de Telegram</td></tr>
+  <tr><td><code>AUTHORIZED_USERS</code></td><td>Si</td><td>&mdash;</td><td>IDs Telegram autorizados (coma)</td></tr>
+  <tr><td><code>AUTH_PIN</code></td><td>Si</td><td>&mdash;</td><td>PIN de autenticacion</td></tr>
+  <tr><td><code>MASTER_PASSWORD</code></td><td>Si</td><td>&mdash;</td><td>Contrasena maestra cifrado (16+ chars)</td></tr>
+  <tr><td><code>SESSION_TIMEOUT_MIN</code></td><td>No</td><td>15</td><td>Timeout sesion (minutos)</td></tr>
   <tr><td><code>RATE_LIMIT_PER_MIN</code></td><td>No</td><td>10</td><td>Max comandos/minuto</td></tr>
   <tr><td><code>AUTO_DELETE_SEC</code></td><td>No</td><td>0</td><td>Auto-borrar mensajes (0 = off)</td></tr>
   <tr><td><code>CLAUDE_BIN</code></td><td>No</td><td>claude</td><td>Ruta binario Claude Code</td></tr>
   <tr><td><code>DEFAULT_WORK_DIR</code></td><td>No</td><td>$HOME</td><td>Directorio trabajo por defecto</td></tr>
-  <tr><td><code>MAX_CONCURRENT</code></td><td>No</td><td>2</td><td>Procesos Claude simultáneos</td></tr>
-  <tr><td><code>OPENAI_API_KEY</code></td><td>No</td><td>—</td><td>API key OpenAI</td></tr>
+  <tr><td><code>MAX_CONCURRENT</code></td><td>No</td><td>2</td><td>Procesos Claude simultaneos</td></tr>
+  <tr><td><code>OPENAI_API_KEY</code></td><td>No</td><td>&mdash;</td><td>API key OpenAI (chat + vision + TTS)</td></tr>
   <tr><td><code>OPENAI_MODEL</code></td><td>No</td><td>gpt-4o</td><td>Modelo OpenAI</td></tr>
-  <tr><td><code>GEMINI_API_KEY</code></td><td>No</td><td>—</td><td>API key Google Gemini</td></tr>
+  <tr><td><code>GEMINI_API_KEY</code></td><td>No</td><td>&mdash;</td><td>API key Google Gemini</td></tr>
   <tr><td><code>GEMINI_MODEL</code></td><td>No</td><td>gemini-2.5-flash</td><td>Modelo Gemini</td></tr>
-  <tr><td><code>ANTHROPIC_API_KEY</code></td><td>No</td><td>—</td><td>API key Anthropic</td></tr>
+  <tr><td><code>ANTHROPIC_API_KEY</code></td><td>No</td><td>&mdash;</td><td>API key Anthropic</td></tr>
   <tr><td><code>ANTHROPIC_MODEL</code></td><td>No</td><td>claude-sonnet-4</td><td>Modelo Anthropic</td></tr>
-  <tr><td><code>GROQ_API_KEY</code></td><td>No</td><td>—</td><td>API key Groq</td></tr>
+  <tr><td><code>GROQ_API_KEY</code></td><td>No</td><td>&mdash;</td><td>API key Groq (chat + whisper + TTS)</td></tr>
   <tr><td><code>GROQ_MODEL</code></td><td>No</td><td>llama-3.3-70b</td><td>Modelo Groq</td></tr>
   <tr><td><code>LOG_LEVEL</code></td><td>No</td><td>info</td><td>debug/info/warn/error</td></tr>
 </table>
 
 <!-- FOOTER -->
 <div class="footer">
-  <p>LLM Remote v1.3 · Redegal - A Smart Company · Febrero 2026</p>
-  <p>Documento interno — Uso exclusivo del equipo de Redegal</p>
+  <p>LLM Remote v2.1 &middot; Redegal - A Smart Company &middot; Febrero 2026</p>
+  <p>Documento interno &mdash; Uso exclusivo del equipo de Redegal</p>
 </div>
 
 </body>
