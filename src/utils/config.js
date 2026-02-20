@@ -60,4 +60,10 @@ export const config = {
     data: resolve(__dirname, '../../data'),
     db: resolve(__dirname, '../../data/audit.db'),
   },
+  shared: {
+    botName: process.env.BOT_NAME || '',
+    peerBotName: process.env.PEER_BOT_NAME || '',
+    dataDir: process.env.SHARED_DATA_DIR || '',
+    autoChat: process.env.INTER_BOT_AUTO === 'true',
+  },
 };

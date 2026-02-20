@@ -2,6 +2,27 @@
 
 Todos los cambios notables de este proyecto se documentan aquí.
 
+## [2.3.0] — 2026-02-20
+
+### Añadido
+- **Memoria compartida inter-bot**: dos instancias de bot pueden compartir conocimiento y comunicarse
+  - Volumen Docker compartido (`llm-shared-memory`) montado en ambos containers
+  - `/compartir <texto>` — Guardar insight compartido (formato: `tema: contenido`)
+  - `/mensaje <texto>` — Enviar mensaje directo al otro bot
+  - `/memoria` — Ver insights y mensajes compartidos, marcar como leídos
+  - Auto-learning: extrae insights clave de conversaciones automáticamente (2ª llamada ligera al LLM)
+  - Inyección automática en system prompt: el bot conoce lo que aprendió su peer
+  - Notificación al autenticarse: muestra mensajes pendientes del peer
+- **Chat autónomo entre bots** (configurable): `INTER_BOT_AUTO=true`
+  - Los bots procesan mensajes del peer automáticamente (sin intervención humana)
+  - Generan respuesta con IA y la guardan para el peer
+  - Notifican a los usuarios autorizados de cada intercambio
+  - Configurable: `INTER_BOT_AUTO=false` para modo manual (solo `/mensaje` y `/compartir`)
+  - Los bots eligen con quién hablan via `PEER_BOT_NAME` (no broadcast)
+- Variables de entorno: `BOT_NAME`, `PEER_BOT_NAME`, `SHARED_DATA_DIR`, `INTER_BOT_AUTO`
+- `/status` muestra info de peer y mensajes sin leer
+- 10 tests nuevos para SharedMemory — total 71 tests
+
 ## [2.2.0] — 2026-02-20
 
 ### Añadido

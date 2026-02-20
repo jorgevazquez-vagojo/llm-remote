@@ -17,6 +17,7 @@ import { MCPManager } from './mcp/client.js';
 import { Pipeline } from './pipeline/pipeline.js';
 import { SSHManager } from './remote/ssh.js';
 import { Persona } from './context/persona.js';
+import { SharedMemory } from './context/shared-memory.js';
 import { existsSync } from 'node:fs';
 
 export function createBot() {
@@ -36,8 +37,12 @@ export function createBot() {
     const configured = providers.listConfigured();
     const providerList = configured.map(p => `  ${p.displayName}`).join('\n');
 
+    const sharedInfo = SharedMemory.peerEnabled
+      ? `\n\n🧠 Memoria compartida con ${SharedMemory.peerName} (auto: ${SharedMemory.autoChat ? 'ON' : 'OFF'})`
+      : '';
+
     await ctx.reply(
-      '🤖 LLM Remote v2.2 — Telegram ↔ IA Bridge\n\n' +
+      '🤖 LLM Remote v2.3 — Telegram ↔ IA Bridge\n\n' +
       'Autenticarse: /auth <PIN>\n\n' +
       '📝 Comandos básicos:\n' +
       '  /ask <prompt> — Enviar prompt\n' +
@@ -56,8 +61,13 @@ export function createBot() {
       '  /pipe paso1 → paso2 → paso3 — Pipelines\n' +
       '  /mcp — Servidores MCP\n' +
       '  /ssh — Ejecutar comandos en servidores remotos\n\n' +
+      '🧠 Inter-bot:\n' +
+      '  /compartir <texto> — Compartir insight con el otro bot\n' +
+      '  /mensaje <texto> — Enviar mensaje al otro bot\n' +
+      '  /memoria — Ver memoria compartida\n\n' +
       '👥 Funciona en grupos (menciona @bot o responde).\n\n' +
-      `Proveedores:\n${providerList}`
+      `Proveedores:\n${providerList}` +
+      sharedInfo
     );
   });
 
@@ -75,12 +85,25 @@ export function createBot() {
       try { await ctx.deleteMessage(); } catch {}
 
       const provider = providers.getForUser(ctx.from.id);
+      let pendingInfo = '';
+      if (SharedMemory.peerEnabled) {
+        const unread = SharedMemory.getUnreadMessages();
+        if (unread.length > 0) {
+          pendingInfo = `\n\n📨 ${unread.length} mensaje(s) de ${SharedMemory.peerName}:`;
+          for (const msg of unread.slice(-3)) {
+            pendingInfo += `\n  💬 "${msg.content.substring(0, 150)}"`;
+          }
+          pendingInfo += '\n\nUsa /memoria para ver todo.';
+        }
+      }
+
       await ctx.reply(
         '✅ Sesión iniciada.\n' +
         `📁 Directorio: ${sessionManager.getWorkDir(ctx.from.id)}\n` +
         `🤖 Proveedor: ${provider.displayName}\n` +
         `⏱ Timeout: ${config.auth.sessionTimeoutMs / 60000} min\n\n` +
-        'Escribe texto, envía audio 🎤, foto 📷 o archivo 📎'
+        'Escribe texto, envía audio 🎤, foto 📷 o archivo 📎' +
+        pendingInfo
       );
     } else {
       const failCount = recordFailedAuth(ctx.from.id);
@@ -153,11 +176,17 @@ export function createBot() {
     const personaInfo = Persona.getInfo(ctx.from.id);
     const personaStatus = personaInfo.isCustom ? `🎭 Modo: "${personaInfo.label}"` : '🎭 Modo: default';
 
+    const sharedStatus = SharedMemory.peerEnabled
+      ? `\n🧠 Peer: ${SharedMemory.peerName} (auto: ${SharedMemory.autoChat ? 'ON' : 'OFF'})` +
+        ` · ${SharedMemory.getUnreadMessages().length} sin leer`
+      : '';
+
     await ctx.reply(
       formatStatus(info) +
       `\n\n🤖 ${provider.displayName}\n${providerStatus}` +
       `\n💬 Contexto: ${memStats.messages}/${memStats.maxMessages} mensajes` +
       `\n${personaStatus}` +
+      sharedStatus +
       (schedules.length ? `\n⏰ Tareas programadas: ${schedules.length}` : '') +
       (mcpServers.length ? `\n🔌 MCP: ${mcpServers.filter(s => s.connected).length}/${mcpServers.length} conectados` : '') +
       (sshServers.length ? `\n🖥️ SSH: ${sshServers.length} servidores` : '')
@@ -580,10 +609,85 @@ export function createBot() {
     }
   });
 
+  // /compartir <text> — save insight to shared memory
+  bot.command('compartir', async (ctx) => {
+    const text = ctx.match?.trim();
+    if (!text) {
+      await ctx.reply('Uso: /compartir <insight>\nEjemplo: /compartir El precio de Bitcoin supera los 100k USD');
+      return;
+    }
+
+    if (!SharedMemory.enabled) {
+      await ctx.reply('❌ Memoria compartida no configurada (faltan BOT_NAME y SHARED_DATA_DIR).');
+      return;
+    }
+
+    // Parse "topic: content" or just "content"
+    let topic = 'general';
+    let content = text;
+    const colonIdx = text.indexOf(':');
+    if (colonIdx > 0 && colonIdx < 30) {
+      topic = text.substring(0, colonIdx).trim();
+      content = text.substring(colonIdx + 1).trim();
+    }
+
+    const insight = SharedMemory.addInsight(topic, content);
+    logAudit(ctx.from.id, 'shared_insight', { topic, content: content.substring(0, 100) });
+    await ctx.reply(`🧠 Insight guardado:\n📌 ${topic}: ${content.substring(0, 300)}`);
+  });
+
+  // /mensaje <text> — send message to peer bot
+  bot.command('mensaje', async (ctx) => {
+    const text = ctx.match?.trim();
+    if (!text) {
+      await ctx.reply(`Uso: /mensaje <texto>\nEjemplo: /mensaje Revisa las cotizaciones de Inditex`);
+      return;
+    }
+
+    if (!SharedMemory.peerEnabled) {
+      await ctx.reply('❌ No hay peer bot configurado (faltan BOT_NAME, PEER_BOT_NAME y SHARED_DATA_DIR).');
+      return;
+    }
+
+    const msg = SharedMemory.sendToPeer(text);
+    logAudit(ctx.from.id, 'shared_message', { to: SharedMemory.peerName, content: text.substring(0, 100) });
+    await ctx.reply(`💬 Mensaje enviado a ${SharedMemory.peerName}:\n"${text.substring(0, 300)}"`);
+  });
+
+  // /memoria — view shared memory status
+  bot.command('memoria', async (ctx) => {
+    const summary = SharedMemory.getSummary();
+
+    let details = '';
+    if (SharedMemory.peerEnabled) {
+      const peerInsights = SharedMemory.getPeerInsights(5);
+      if (peerInsights.length > 0) {
+        details += `\n\n📚 Últimos insights de ${SharedMemory.peerName}:`;
+        for (const i of peerInsights) {
+          const time = i.timestamp.substring(5, 16).replace('T', ' ');
+          details += `\n  [${time}] ${i.topic}: ${i.content.substring(0, 120)}`;
+        }
+      }
+
+      const unread = SharedMemory.getUnreadMessages();
+      if (unread.length > 0) {
+        details += `\n\n📨 Mensajes sin leer de ${SharedMemory.peerName}:`;
+        for (const m of unread) {
+          const time = m.timestamp.substring(5, 16).replace('T', ' ');
+          details += `\n  [${time}] "${m.content.substring(0, 150)}"`;
+        }
+        details += '\n\nSe marcarán como leídos.';
+        SharedMemory.markAllRead();
+      }
+    }
+
+    await ctx.reply(summary + details);
+  });
+
   // /help
   bot.command('help', async (ctx) => {
     await ctx.reply(
-      '🤖 LLM Remote v2.2 — Comandos:\n\n' +
+      '🤖 LLM Remote v2.3 — Comandos:\n\n' +
       '🔐 Sesión:\n' +
       '  /auth <PIN> — Autenticarse\n' +
       '  /lock — Bloquear sesión\n' +
@@ -607,6 +711,10 @@ export function createBot() {
       '  /unschedule <id> — Eliminar tarea\n' +
       '  /pipe paso1 → paso2 — Pipeline\n' +
       '  /mcp — Servidores MCP\n\n' +
+      '🧠 Inter-bot:\n' +
+      '  /compartir <texto> — Compartir insight\n' +
+      '  /mensaje <texto> — Mensaje al otro bot\n' +
+      '  /memoria — Ver memoria compartida\n\n' +
       '🖥️ Remoto:\n' +
       '  /ssh add <nombre> <user@host> — Añadir servidor\n' +
       '  /ssh <servidor> <comando> — Ejecutar comando\n' +
@@ -732,6 +840,9 @@ export function createBot() {
     }
   });
 
+  // Start auto-chat loop if enabled (needs bot + providers)
+  bot._autoChatInterval = startAutoChatLoop(bot, providers);
+
   // 📎 Documents/Files
   bot.on('message:document', async (ctx) => {
     const rateCheck = checkRateLimit(ctx.from.id);
@@ -840,10 +951,11 @@ function handlePrompt(providers, sessionManager) {
     const providerName = providers.getUserProviderName(ctx.from.id);
     const history = ConversationMemory.getForProvider(ctx.from.id);
 
-    // Build system prompt from persona + workDir context
+    // Build system prompt from persona + workDir context + shared memory
     const persona = Persona.get(ctx.from.id);
     const basePrompt = persona || 'Eres un asistente experto en ingeniería de software. Responde de forma concisa en español. Código en inglés.';
-    const systemPrompt = `${basePrompt}\n\nDirectorio de trabajo: ${workDir}`;
+    const sharedContext = SharedMemory.getContext();
+    const systemPrompt = `${basePrompt}\n\nDirectorio de trabajo: ${workDir}${sharedContext}`;
 
     // Add MCP tools description to context
     const mcpToolsDesc = MCPManager.getToolsDescription();
@@ -901,6 +1013,11 @@ function handlePrompt(providers, sessionManager) {
           length: output.length,
           tokens: result.tokens,
         });
+
+        // Auto-learn: extract insight from substantial responses
+        if (SharedMemory.enabled && output.length > 200) {
+          extractInsight(text, output, providers, ctx.from.id).catch(() => {});
+        }
       } else {
         await ctx.reply(`❌ Error (${providerName}):\n\n${result.output?.substring(0, 1000)}`);
         logAudit(ctx.from.id, 'error', { provider: providerName, error: result.output?.substring(0, 500) });
@@ -923,4 +1040,120 @@ function formatInterval(ms) {
   if (ms >= 3600000) return `${ms / 3600000}h`;
   if (ms >= 60000) return `${ms / 60000}m`;
   return `${ms / 1000}s`;
+}
+
+/**
+ * Auto-learn: make a lightweight AI call to extract insights from conversations.
+ * Uses the cheapest available provider (gemini > groq > current).
+ */
+async function extractInsight(userMsg, botResponse, providers, userId) {
+  try {
+    // Pick the cheapest configured provider for insight extraction
+    const cheapProvider = pickCheapProvider(providers);
+    if (!cheapProvider) return;
+
+    const extractPrompt =
+      'De la siguiente conversación, ¿hay algún dato, hecho o insight clave que valga la pena recordar ' +
+      'para futuras conversaciones? Solo datos factuales, no opiniones.\n' +
+      'Si sí, responde EXACTAMENTE con: INSIGHT:tema|contenido\n' +
+      'Si no hay nada notable, responde: NONE\n\n' +
+      `User: ${userMsg.substring(0, 500)}\nBot: ${botResponse.substring(0, 1000)}`;
+
+    const result = await cheapProvider.execute(extractPrompt, {
+      systemPrompt: 'Eres un extractor de conocimiento. Solo responde INSIGHT:tema|contenido o NONE. Nada más.',
+      userId,
+    });
+
+    if (result.ok && result.output) {
+      const match = result.output.match(/INSIGHT:\s*([^|]+)\|(.+)/s);
+      if (match) {
+        const topic = match[1].trim().substring(0, 50);
+        const content = match[2].trim().substring(0, 500);
+        SharedMemory.addInsight(topic, content);
+        log.info(`[shared] Auto-insight: ${topic} — ${content.substring(0, 60)}`);
+      }
+    }
+  } catch (err) {
+    log.debug(`[shared] Insight extraction failed: ${err.message}`);
+  }
+}
+
+/**
+ * Pick the cheapest available provider for lightweight tasks.
+ * Preference: gemini (free) > groq (free) > fallback to any configured.
+ */
+function pickCheapProvider(providers) {
+  for (const name of ['gemini', 'groq', 'openai', 'anthropic']) {
+    const p = providers.get(name);
+    if (p?.isConfigured) return p;
+  }
+  return null;
+}
+
+/**
+ * Start the autonomous inter-bot chat loop.
+ * Periodically checks for unread messages from peer and responds automatically.
+ * @param {Bot} bot — grammY bot instance
+ * @param {ProviderManager} providers
+ */
+export function startAutoChatLoop(bot, providers) {
+  if (!SharedMemory.autoChat) {
+    log.info('[shared] Auto-chat disabled (INTER_BOT_AUTO != true)');
+    return null;
+  }
+
+  log.info(`[shared] Auto-chat enabled: ${SharedMemory.botName} ↔ ${SharedMemory.peerName}`);
+  const authorizedUsers = config.auth.authorizedUsers;
+
+  const interval = setInterval(async () => {
+    try {
+      const unread = SharedMemory.getUnreadMessages();
+      if (unread.length === 0) return;
+
+      for (const msg of unread) {
+        log.info(`[shared] Auto-processing message from ${msg.from}: ${msg.content.substring(0, 60)}`);
+
+        // Generate autonomous response using cheapest provider
+        const provider = pickCheapProvider(providers);
+        if (!provider) {
+          log.warn('[shared] No provider available for auto-chat');
+          break;
+        }
+
+        const persona = Persona.get(authorizedUsers[0]) || '';
+        const systemPrompt = persona
+          ? `${persona}\n\nEstás respondiendo automáticamente a un mensaje del bot "${msg.from}". Sé conciso y útil.`
+          : `Eres ${SharedMemory.botName}. Responde al mensaje del bot "${msg.from}". Sé conciso y útil. Responde en español.`;
+
+        const result = await provider.execute(msg.content, {
+          systemPrompt,
+          userId: 'auto-chat',
+        });
+
+        if (result.ok && result.output) {
+          // Send response back to peer
+          SharedMemory.sendToPeer(`[Respuesta automática a: "${msg.content.substring(0, 80)}"]\n\n${result.output}`);
+          log.info(`[shared] Auto-reply sent to ${msg.from}: ${result.output.substring(0, 60)}`);
+
+          // Notify authorized users about the exchange
+          for (const userId of authorizedUsers) {
+            try {
+              await bot.api.sendMessage(userId,
+                `🤖↔🤖 Auto-chat con ${msg.from}:\n\n` +
+                `📨 ${msg.from}: "${msg.content.substring(0, 300)}"\n\n` +
+                `💬 ${SharedMemory.botName}: "${result.output.substring(0, 300)}"`
+              );
+            } catch {}
+          }
+        }
+
+        // Mark as read after processing
+        SharedMemory.markRead(msg.id);
+      }
+    } catch (err) {
+      log.error(`[shared] Auto-chat error: ${err.message}`);
+    }
+  }, 30_000); // Check every 30 seconds
+
+  return interval;
 }

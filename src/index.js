@@ -4,13 +4,18 @@ import { initAudit, closeAudit } from './security/audit.js';
 import { createBot } from './bot.js';
 import { Scheduler } from './scheduler/scheduler.js';
 import { MCPManager } from './mcp/client.js';
+import { SharedMemory } from './context/shared-memory.js';
 
 async function main() {
-  log.info('LLM Remote v2.0 iniciando...');
+  log.info('LLM Remote v2.3 iniciando...');
 
   // Inicializar audit log cifrado
   initAudit();
   log.info('Audit log inicializado');
+
+  if (SharedMemory.enabled) {
+    log.info(`[shared] Bot: ${SharedMemory.botName}, Peer: ${SharedMemory.peerName || 'ninguno'}, Auto: ${SharedMemory.autoChat}`);
+  }
 
   // Crear y arrancar bot
   const bot = createBot();
@@ -18,6 +23,7 @@ async function main() {
   // Apagado limpio
   const shutdown = async (signal) => {
     log.info(`Señal ${signal} recibida, apagando...`);
+    if (bot._autoChatInterval) clearInterval(bot._autoChatInterval);
     Scheduler.stop();
     MCPManager.stopAll();
     bot.stop();
@@ -36,6 +42,10 @@ async function main() {
       log.info(`Timeout de sesión: ${config.auth.sessionTimeoutMs / 60000} min`);
       log.info(`Límite de comandos: ${config.security.rateLimitPerMin}/min`);
       log.info(`Directorio por defecto: ${config.claude.defaultWorkDir}`);
+
+      if (SharedMemory.autoChat) {
+        log.info(`[shared] Auto-chat loop running (check every 30s)`);
+      }
     },
   });
 }

@@ -6,6 +6,7 @@ services:
     env_file: .env
     volumes:
       - llm-data:/app/data
+      - llm-shared:/shared
     logging:
       driver: json-file
       options:
@@ -14,3 +15,6 @@ services:
 
 volumes:
   llm-data:
+  llm-shared:
+    external: true
+    name: llm-shared-memory
