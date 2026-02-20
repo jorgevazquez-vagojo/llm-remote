@@ -19,8 +19,8 @@
 </p>
 
 <p align="center">
-  <a href="docs/manual.html">Manual ES</a> ·
-  <a href="docs/manual_en.html">Manual EN</a> ·
+  <a href="https://jorgevazquez-vagojo.github.io/llm-remote/manual.html">Manual ES</a> ·
+  <a href="https://jorgevazquez-vagojo.github.io/llm-remote/manual_en.html">Manual EN</a> ·
   <a href="CHANGELOG.md">Changelog</a> ·
   <a href="CONTRIBUTING.md">Contributing</a> ·
   <a href="SECURITY.md">Security</a>
@@ -207,8 +207,8 @@ See [`.env.example`](.env.example) for all options. Key variables:
 
 ## Documentation
 
-- [Manual (Spanish)](docs/manual.html) · [PDF](docs/LLM_Remote_Manual.pdf)
-- [Manual (English)](docs/manual_en.html) · [PDF](docs/LLM_Remote_Manual_EN.pdf)
+- [Manual (Spanish)](https://jorgevazquez-vagojo.github.io/llm-remote/manual.html) · [PDF](https://github.com/jorgevazquez-vagojo/llm-remote/releases/latest/download/LLM_Remote_Manual.pdf)
+- [Manual (English)](https://jorgevazquez-vagojo.github.io/llm-remote/manual_en.html) · [PDF](https://github.com/jorgevazquez-vagojo/llm-remote/releases/latest/download/LLM_Remote_Manual_EN.pdf)
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security Policy](SECURITY.md)
