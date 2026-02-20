@@ -62,7 +62,8 @@ export const config = {
   },
   shared: {
     botName: process.env.BOT_NAME || '',
-    peerBotName: process.env.PEER_BOT_NAME || '',
+    peerBotNames: (process.env.PEER_BOT_NAMES || process.env.PEER_BOT_NAME || '')
+      .split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
     dataDir: process.env.SHARED_DATA_DIR || '',
     autoChat: process.env.INTER_BOT_AUTO === 'true',
   },

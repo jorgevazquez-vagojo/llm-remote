@@ -38,7 +38,7 @@ export function createBot() {
     const providerList = configured.map(p => `  ${p.displayName}`).join('\n');
 
     const sharedInfo = SharedMemory.peerEnabled
-      ? `\n\n🧠 Memoria compartida con ${SharedMemory.peerName} (auto: ${SharedMemory.autoChat ? 'ON' : 'OFF'})`
+      ? `\n\n🧠 Memoria compartida con ${SharedMemory.peerNames.join(', ')} (auto: ${SharedMemory.autoChat ? 'ON' : 'OFF'})`
       : '';
 
     await ctx.reply(
@@ -89,9 +89,9 @@ export function createBot() {
       if (SharedMemory.peerEnabled) {
         const unread = SharedMemory.getUnreadMessages();
         if (unread.length > 0) {
-          pendingInfo = `\n\n📨 ${unread.length} mensaje(s) de ${SharedMemory.peerName}:`;
+          pendingInfo = `\n\n📨 ${unread.length} mensaje(s) pendiente(s):`;
           for (const msg of unread.slice(-3)) {
-            pendingInfo += `\n  💬 "${msg.content.substring(0, 150)}"`;
+            pendingInfo += `\n  💬 ${msg.from}: "${msg.content.substring(0, 150)}"`;
           }
           pendingInfo += '\n\nUsa /memoria para ver todo.';
         }
@@ -177,7 +177,7 @@ export function createBot() {
     const personaStatus = personaInfo.isCustom ? `🎭 Modo: "${personaInfo.label}"` : '🎭 Modo: default';
 
     const sharedStatus = SharedMemory.peerEnabled
-      ? `\n🧠 Peer: ${SharedMemory.peerName} (auto: ${SharedMemory.autoChat ? 'ON' : 'OFF'})` +
+      ? `\n🧠 Peers: ${SharedMemory.peerNames.join(', ')} (auto: ${SharedMemory.autoChat ? 'ON' : 'OFF'})` +
         ` · ${SharedMemory.getUnreadMessages().length} sin leer`
       : '';
 
@@ -636,22 +636,61 @@ export function createBot() {
     await ctx.reply(`🧠 Insight guardado:\n📌 ${topic}: ${content.substring(0, 300)}`);
   });
 
-  // /mensaje <text> — send message to peer bot
+  // /mensaje [peer] <text> — send message to peer bot(s)
   bot.command('mensaje', async (ctx) => {
     const text = ctx.match?.trim();
+    const peers = SharedMemory.peerNames;
+
     if (!text) {
-      await ctx.reply(`Uso: /mensaje <texto>\nEjemplo: /mensaje Revisa las cotizaciones de Inditex`);
+      const peerList = peers.length > 0 ? peers.join(', ') : '(ninguno)';
+      await ctx.reply(
+        `Uso: /mensaje [peer] <texto>\n` +
+        `Peers: ${peerList}\n\n` +
+        `Ejemplos:\n` +
+        (peers.length === 1
+          ? `  /mensaje Revisa las cotizaciones\n`
+          : `  /mensaje ${peers[0] || 'nombre'} Revisa las cotizaciones\n`) +
+        `  /mensaje todos Hola a todos`
+      );
       return;
     }
 
     if (!SharedMemory.peerEnabled) {
-      await ctx.reply('❌ No hay peer bot configurado (faltan BOT_NAME, PEER_BOT_NAME y SHARED_DATA_DIR).');
+      await ctx.reply('❌ No hay peers configurados (faltan BOT_NAME, PEER_BOT_NAMES y SHARED_DATA_DIR).');
       return;
     }
 
-    const msg = SharedMemory.sendToPeer(text);
-    logAudit(ctx.from.id, 'shared_message', { to: SharedMemory.peerName, content: text.substring(0, 100) });
-    await ctx.reply(`💬 Mensaje enviado a ${SharedMemory.peerName}:\n"${text.substring(0, 300)}"`);
+    // Parse: first word might be a peer name or "todos"
+    const firstWord = text.split(/\s+/)[0].toLowerCase();
+    let targetPeers;
+    let content;
+
+    if (firstWord === 'todos' || firstWord === 'all') {
+      targetPeers = peers;
+      content = text.substring(firstWord.length).trim();
+    } else if (peers.includes(firstWord)) {
+      targetPeers = [firstWord];
+      content = text.substring(firstWord.length).trim();
+    } else if (peers.length === 1) {
+      // Single peer: no need to specify name
+      targetPeers = peers;
+      content = text;
+    } else {
+      // Multiple peers but no name specified — send to all
+      targetPeers = peers;
+      content = text;
+    }
+
+    if (!content) {
+      await ctx.reply('❌ Escribe un mensaje después del nombre del peer.');
+      return;
+    }
+
+    for (const peer of targetPeers) {
+      SharedMemory.sendMessage(peer, content);
+    }
+    logAudit(ctx.from.id, 'shared_message', { to: targetPeers.join(','), content: content.substring(0, 100) });
+    await ctx.reply(`💬 Mensaje enviado a ${targetPeers.join(', ')}:\n"${content.substring(0, 300)}"`);
   });
 
   // /memoria — view shared memory status
@@ -662,19 +701,19 @@ export function createBot() {
     if (SharedMemory.peerEnabled) {
       const peerInsights = SharedMemory.getPeerInsights(5);
       if (peerInsights.length > 0) {
-        details += `\n\n📚 Últimos insights de ${SharedMemory.peerName}:`;
+        details += '\n\n📚 Últimos insights de peers:';
         for (const i of peerInsights) {
           const time = i.timestamp.substring(5, 16).replace('T', ' ');
-          details += `\n  [${time}] ${i.topic}: ${i.content.substring(0, 120)}`;
+          details += `\n  [${time}] ${i.from}/${i.topic}: ${i.content.substring(0, 120)}`;
         }
       }
 
       const unread = SharedMemory.getUnreadMessages();
       if (unread.length > 0) {
-        details += `\n\n📨 Mensajes sin leer de ${SharedMemory.peerName}:`;
+        details += '\n\n📨 Mensajes sin leer:';
         for (const m of unread) {
           const time = m.timestamp.substring(5, 16).replace('T', ' ');
-          details += `\n  [${time}] "${m.content.substring(0, 150)}"`;
+          details += `\n  [${time}] ${m.from}: "${m.content.substring(0, 150)}"`;
         }
         details += '\n\nSe marcarán como leídos.';
         SharedMemory.markAllRead();
@@ -1014,9 +1053,9 @@ function handlePrompt(providers, sessionManager) {
           tokens: result.tokens,
         });
 
-        // Auto-learn: extract insight from substantial responses
+        // Auto-learn: extract insight from substantial responses and notify user
         if (SharedMemory.enabled && output.length > 200) {
-          extractInsight(text, output, providers, ctx.from.id).catch(() => {});
+          extractInsight(text, output, providers, ctx.from.id, ctx).catch(() => {});
         }
       } else {
         await ctx.reply(`❌ Error (${providerName}):\n\n${result.output?.substring(0, 1000)}`);
@@ -1044,11 +1083,10 @@ function formatInterval(ms) {
 
 /**
  * Auto-learn: make a lightweight AI call to extract insights from conversations.
- * Uses the cheapest available provider (gemini > groq > current).
+ * Notifies the user in Telegram when an insight is saved.
  */
-async function extractInsight(userMsg, botResponse, providers, userId) {
+async function extractInsight(userMsg, botResponse, providers, userId, ctx) {
   try {
-    // Pick the cheapest configured provider for insight extraction
     const cheapProvider = pickCheapProvider(providers);
     if (!cheapProvider) return;
 
@@ -1071,6 +1109,11 @@ async function extractInsight(userMsg, botResponse, providers, userId) {
         const content = match[2].trim().substring(0, 500);
         SharedMemory.addInsight(topic, content);
         log.info(`[shared] Auto-insight: ${topic} — ${content.substring(0, 60)}`);
+
+        // Notify user in Telegram
+        try {
+          await ctx.reply(`🧠 Aprendí: [${topic}] ${content.substring(0, 200)}`);
+        } catch {}
       }
     }
   } catch (err) {
@@ -1091,10 +1134,10 @@ function pickCheapProvider(providers) {
 }
 
 /**
- * Start the autonomous inter-bot chat loop.
- * Periodically checks for unread messages from peer and responds automatically.
- * @param {Bot} bot — grammY bot instance
- * @param {ProviderManager} providers
+ * Start the autonomous inter-bot loop.
+ * Every 30s:
+ *   1. Notify users of new peer insights (visible on screen, no commands needed)
+ *   2. Auto-respond to unread messages from peers (autonomous conversation)
  */
 export function startAutoChatLoop(bot, providers) {
   if (!SharedMemory.autoChat) {
@@ -1102,23 +1145,40 @@ export function startAutoChatLoop(bot, providers) {
     return null;
   }
 
-  log.info(`[shared] Auto-chat enabled: ${SharedMemory.botName} ↔ ${SharedMemory.peerName}`);
+  const peers = SharedMemory.peerNames;
+  log.info(`[shared] Auto-chat enabled: ${SharedMemory.botName} ↔ ${peers.join(', ')}`);
   const authorizedUsers = config.auth.authorizedUsers;
+
+  async function notifyUsers(text) {
+    for (const userId of authorizedUsers) {
+      try { await bot.api.sendMessage(userId, text); } catch {}
+    }
+  }
 
   const interval = setInterval(async () => {
     try {
+      // 1. Show new peer insights on screen automatically
+      const newInsights = SharedMemory.getNewPeerInsights();
+      for (const insight of newInsights) {
+        await notifyUsers(
+          `🧠 ${insight.from} aprendió:\n` +
+          `📌 [${insight.topic}] ${insight.content.substring(0, 400)}`
+        );
+        log.info(`[shared] Notified insight from ${insight.from}: ${insight.topic}`);
+      }
+
+      // 2. Auto-respond to unread messages
       const unread = SharedMemory.getUnreadMessages();
       if (unread.length === 0) return;
 
+      const provider = pickCheapProvider(providers);
+      if (!provider) {
+        log.warn('[shared] No provider available for auto-chat');
+        return;
+      }
+
       for (const msg of unread) {
         log.info(`[shared] Auto-processing message from ${msg.from}: ${msg.content.substring(0, 60)}`);
-
-        // Generate autonomous response using cheapest provider
-        const provider = pickCheapProvider(providers);
-        if (!provider) {
-          log.warn('[shared] No provider available for auto-chat');
-          break;
-        }
 
         const persona = Persona.get(authorizedUsers[0]) || '';
         const systemPrompt = persona
@@ -1131,29 +1191,24 @@ export function startAutoChatLoop(bot, providers) {
         });
 
         if (result.ok && result.output) {
-          // Send response back to peer
-          SharedMemory.sendToPeer(`[Respuesta automática a: "${msg.content.substring(0, 80)}"]\n\n${result.output}`);
-          log.info(`[shared] Auto-reply sent to ${msg.from}: ${result.output.substring(0, 60)}`);
+          // Reply back to the sender
+          SharedMemory.sendMessage(msg.from, `[Re: "${msg.content.substring(0, 80)}"]\n\n${result.output}`);
+          log.info(`[shared] Auto-reply to ${msg.from}: ${result.output.substring(0, 60)}`);
 
-          // Notify authorized users about the exchange
-          for (const userId of authorizedUsers) {
-            try {
-              await bot.api.sendMessage(userId,
-                `🤖↔🤖 Auto-chat con ${msg.from}:\n\n` +
-                `📨 ${msg.from}: "${msg.content.substring(0, 300)}"\n\n` +
-                `💬 ${SharedMemory.botName}: "${result.output.substring(0, 300)}"`
-              );
-            } catch {}
-          }
+          // Show exchange on screen
+          await notifyUsers(
+            `🤖↔🤖 Chat con ${msg.from}:\n\n` +
+            `📨 ${msg.from}: "${msg.content.substring(0, 300)}"\n\n` +
+            `💬 ${SharedMemory.botName}: "${result.output.substring(0, 300)}"`
+          );
         }
 
-        // Mark as read after processing
         SharedMemory.markRead(msg.id);
       }
     } catch (err) {
       log.error(`[shared] Auto-chat error: ${err.message}`);
     }
-  }, 30_000); // Check every 30 seconds
+  }, 30_000);
 
   return interval;
 }
