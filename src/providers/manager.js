@@ -6,6 +6,7 @@ import { GroqProvider } from './groq.js';
 import { config } from '../utils/config.js';
 
 const userProviders = new Map(); // userId -> providerName
+const DEFAULT_PROVIDER = process.env.DEFAULT_PROVIDER || 'groq';
 
 export class ProviderManager {
   #providers = {};
@@ -39,7 +40,7 @@ export class ProviderManager {
   }
 
   getForUser(userId) {
-    const name = userProviders.get(userId) || 'claude';
+    const name = userProviders.get(userId) || DEFAULT_PROVIDER;
     return this.#providers[name];
   }
 
@@ -55,7 +56,7 @@ export class ProviderManager {
   }
 
   getUserProviderName(userId) {
-    return userProviders.get(userId) || 'claude';
+    return userProviders.get(userId) || DEFAULT_PROVIDER;
   }
 
   listAll() {
