@@ -8,10 +8,14 @@ import { log } from '../utils/logger.js';
  */
 export class GeminiProvider extends BaseProvider {
   constructor(config) {
-    super('gemini', config);
+    super(config.name || 'gemini', config);
   }
 
-  get displayName() { return '🔵 Gemini 2.5 Flash (gratis)'; }
+  get displayName() {
+    const model = this.config.model || '';
+    if (model.includes('pro')) return '🟣 Gemini Pro';
+    return '🔵 Gemini Flash (gratis)';
+  }
 
   get isConfigured() {
     return !!this.config.apiKey;

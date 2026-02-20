@@ -24,6 +24,11 @@ export class ProviderManager {
         apiKey: config.providers?.gemini?.apiKey,
         model: config.providers?.gemini?.model,
       }),
+      'gemini-pro': new GeminiProvider({
+        name: 'gemini-pro',
+        apiKey: config.providers?.gemini?.apiKey,
+        model: process.env.GEMINI_PRO_MODEL || 'gemini-2.5-pro-preview-05-06',
+      }),
       anthropic: new AnthropicProvider({
         apiKey: config.providers?.anthropic?.apiKey,
         model: config.providers?.anthropic?.model,
