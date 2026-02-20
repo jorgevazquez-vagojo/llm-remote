@@ -20,7 +20,7 @@ export class OpenAIProvider extends BaseProvider {
     const { workDir } = context;
 
     const model = this.config.model || 'gpt-4o';
-    const systemPrompt = `You are a senior software engineer assistant. The user is working in: ${workDir}. Respond concisely in the user's language. If they write in Spanish, respond in Spanish.`;
+    const systemPrompt = `Eres un asistente experto en ingeniería de software. El usuario trabaja en: ${workDir}. Responde de forma concisa en español. Código en inglés.`;
 
     log.info(`[openai] Calling ${model}`);
 
@@ -46,13 +46,13 @@ export class OpenAIProvider extends BaseProvider {
       log.error(`[openai] API error: ${res.status} ${err}`);
       return {
         ok: false,
-        output: `OpenAI API error (${res.status}): ${err.substring(0, 500)}`,
+        output: `Error API OpenAI (${res.status}): ${err.substring(0, 500)}`,
         model,
       };
     }
 
     const data = await res.json();
-    const output = data.choices?.[0]?.message?.content || '(empty response)';
+    const output = data.choices?.[0]?.message?.content || '(respuesta vacía)';
     const usage = data.usage;
 
     log.info(`[openai] ${model} — ${usage?.total_tokens || '?'} tokens`);

@@ -84,8 +84,8 @@ print_banner() {
    ║              ██║  ██║███████╗██║ ╚═╝ ██║               ║
    ║              ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝              ║
    ║                                                       ║
-   ║   Telegram ↔ IA Bridge · Cifrado End-to-End           ║
-   ║   Redegal · Digital Consulting Group                   ║
+   ║   Telegram ↔ IA · Cifrado Extremo a Extremo            ║
+   ║   Redegal · Grupo de Consultoría Digital               ║
    ║                                                       ║
    ╚═══════════════════════════════════════════════════════╝
 
@@ -178,7 +178,7 @@ install_project() {
       warn "No se pudo actualizar desde remoto. Continuando con versión local."
     }
   elif [[ -d "$INSTALL_DIR" ]]; then
-    # Directory exists but no git — copy current files
+    # Directorio existe pero sin git — usar archivos locales
     info "Directorio existente sin git. Usando archivos locales."
     cd "$INSTALL_DIR"
   else
@@ -186,10 +186,10 @@ install_project() {
     if git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$INSTALL_DIR" 2>/dev/null; then
       ok "Descargado desde repositorio"
     else
-      # If repo doesn't exist yet, create from local
+      # Si no existe el repo remoto, crear desde local
       warn "Repositorio remoto no disponible. Creando instalación local..."
       mkdir -p "$INSTALL_DIR"
-      # If running from the project directory, copy files
+      # Si se ejecuta desde el directorio del proyecto, copiar archivos
       local script_dir
       script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
       if [[ -f "$script_dir/package.json" ]]; then
@@ -261,7 +261,7 @@ setup_launchd() {
 </plist>
 PLIST
 
-  # Load the service
+  # Cargar el servicio
   launchctl unload "$plist_path" 2>/dev/null || true
   launchctl load "$plist_path"
 
@@ -342,7 +342,7 @@ uninstall() {
     exit 0
   fi
 
-  # Stop service
+  # Parar servicio
   if [[ "$OS" == "macos" ]]; then
     local plist="$HOME/Library/LaunchAgents/${SERVICE_NAME}.plist"
     launchctl unload "$plist" 2>/dev/null || true
@@ -407,15 +407,15 @@ DONE
 
   echo ""
   echo -e "  ${BOLD}Proveedores IA:${NC}"
-  echo -e "    🟣 Claude Code    ${DIM}Agentic (lee/escribe ficheros)${NC}"
-  echo -e "    🟢 OpenAI GPT-4o  ${DIM}Chat API${NC}"
-  echo -e "    🔵 Gemini Flash   ${DIM}Chat API (gratis)${NC}"
-  echo -e "    🟠 Groq Llama     ${DIM}Chat API (gratis, ultra-rápido)${NC}"
-  echo -e "    🟣 Anthropic      ${DIM}Chat API${NC}"
+  echo -e "    🟣 Claude Code    ${DIM}Agéntico (lee/escribe ficheros)${NC}"
+  echo -e "    🟢 OpenAI GPT-4o  ${DIM}Chat por API${NC}"
+  echo -e "    🔵 Gemini Flash   ${DIM}Chat por API (gratis)${NC}"
+  echo -e "    🟠 Groq Llama     ${DIM}Chat por API (gratis, ultra-rápido)${NC}"
+  echo -e "    🟣 Anthropic      ${DIM}Chat por API${NC}"
   echo ""
   echo -e "  ${BOLD}Seguridad:${NC}"
   echo -e "    ${DIM}• Cifrado AES-256-GCM + HMAC para datos en reposo${NC}"
-  echo -e "    ${DIM}• PIN + whitelist + anti-bruteforce + auto-lock${NC}"
+  echo -e "    ${DIM}• PIN + lista blanca + anti-fuerza bruta + bloqueo automático${NC}"
   echo -e "    ${DIM}• Cada instalación tiene su propio cifrado${NC}"
   echo ""
   echo -e "  ${DIM}Documentación: $INSTALL_DIR/README.md${NC}"

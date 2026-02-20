@@ -1,7 +1,8 @@
 const TELEGRAM_MAX = 4096;
 
 /**
- * Split long text into Telegram-safe chunks, respecting code blocks and line breaks.
+ * Divide texto largo en trozos seguros para Telegram,
+ * respetando bloques de código y saltos de línea.
  */
 export function splitMessage(text, maxLen = TELEGRAM_MAX - 100) {
   if (text.length <= maxLen) return [text];
@@ -15,14 +16,14 @@ export function splitMessage(text, maxLen = TELEGRAM_MAX - 100) {
       break;
     }
 
-    // Try to split at a newline near the limit
+    // Intentar cortar en un salto de línea cerca del límite
     let splitAt = remaining.lastIndexOf('\n', maxLen);
     if (splitAt < maxLen * 0.5) {
-      // If no good newline, split at space
+      // Si no hay buen salto, cortar en espacio
       splitAt = remaining.lastIndexOf(' ', maxLen);
     }
     if (splitAt < maxLen * 0.3) {
-      // Hard split
+      // Corte duro
       splitAt = maxLen;
     }
 
@@ -34,16 +35,16 @@ export function splitMessage(text, maxLen = TELEGRAM_MAX - 100) {
 }
 
 /**
- * Escape special characters for Telegram MarkdownV2
+ * Escapar caracteres especiales para Telegram MarkdownV2
  */
 export function escapeMarkdown(text) {
   return text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
 }
 
 /**
- * Format Claude output for Telegram with chunk numbers
+ * Formatear salida para Telegram con números de trozo
  */
-export function formatOutput(text, label = 'Response') {
+export function formatOutput(text, label = 'Respuesta') {
   const chunks = splitMessage(text);
 
   if (chunks.length === 1) {
@@ -57,14 +58,14 @@ export function formatOutput(text, label = 'Response') {
 }
 
 /**
- * Format status message
+ * Formatear mensaje de estado
  */
 export function formatStatus(info) {
   return [
-    '📊 Session Status',
-    `├ Work dir: ${info.workDir}`,
-    `├ Authenticated: ${info.authenticatedAt}`,
-    `├ Last activity: ${info.lastActivity}`,
-    `└ Timeout in: ${info.timeoutIn}`,
+    '📊 Estado de sesión',
+    `├ Directorio: ${info.workDir}`,
+    `├ Autenticado: ${info.authenticatedAt}`,
+    `├ Última actividad: ${info.lastActivity}`,
+    `└ Expira en: ${info.timeoutIn}`,
   ].join('\n');
 }

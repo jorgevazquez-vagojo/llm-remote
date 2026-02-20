@@ -14,7 +14,7 @@ export class ClaudeProvider extends BaseProvider {
     super('claude', config);
   }
 
-  get displayName() { return '🟣 Claude Code (agentic, full access)'; }
+  get displayName() { return '🟣 Claude Code (agéntico, acceso total)'; }
 
   get isConfigured() {
     return true; // Assumes claude CLI is installed

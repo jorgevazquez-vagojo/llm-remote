@@ -21,7 +21,7 @@ export class GeminiProvider extends BaseProvider {
     const { workDir } = context;
 
     const model = this.config.model || 'gemini-2.5-flash-preview-05-20';
-    const systemPrompt = `You are a senior software engineer assistant. The user is working in: ${workDir}. Respond concisely in the user's language. If they write in Spanish, respond in Spanish.`;
+    const systemPrompt = `Eres un asistente experto en ingeniería de software. El usuario trabaja en: ${workDir}. Responde de forma concisa en español. Código en inglés.`;
 
     log.info(`[gemini] Calling ${model}`);
 
@@ -47,13 +47,13 @@ export class GeminiProvider extends BaseProvider {
       log.error(`[gemini] API error: ${res.status} ${err}`);
       return {
         ok: false,
-        output: `Gemini API error (${res.status}): ${err.substring(0, 500)}`,
+        output: `Error API Gemini (${res.status}): ${err.substring(0, 500)}`,
         model,
       };
     }
 
     const data = await res.json();
-    const output = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '(empty response)';
+    const output = data.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '(respuesta vacía)';
     const usage = data.usageMetadata;
 
     log.info(`[gemini] ${model} — ${usage?.totalTokenCount || '?'} tokens`);

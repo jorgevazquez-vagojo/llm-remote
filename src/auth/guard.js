@@ -13,8 +13,8 @@ export function guardMiddleware(sessionManager) {
 
     // Check user is in whitelist
     if (!config.auth.authorizedUsers.includes(userId)) {
-      log.warn(`Blocked unauthorized user: ${userId} (@${ctx.from.username || 'unknown'})`);
-      // Silent ignore — don't reveal bot exists to unauthorized users
+      log.warn(`Usuario no autorizado bloqueado: ${userId} (@${ctx.from.username || 'desconocido'})`);
+      // Ignorar silenciosamente — no revelar que el bot existe
       return;
     }
 
@@ -24,7 +24,7 @@ export function guardMiddleware(sessionManager) {
       const elapsed = Date.now() - attempts.lastAttempt;
       if (elapsed < LOCKOUT_MS) {
         const remaining = Math.ceil((LOCKOUT_MS - elapsed) / 60000);
-        await ctx.reply(`🔒 Locked out. Try again in ${remaining} min.`);
+        await ctx.reply(`🔒 Bloqueado por intentos fallidos. Intenta en ${remaining} min.`);
         return;
       }
       failedAttempts.delete(userId);
@@ -39,7 +39,7 @@ export function guardMiddleware(sessionManager) {
 
     // Check authenticated session
     if (!sessionManager.isAuthenticated(userId)) {
-      await ctx.reply('🔐 Session expired or not authenticated.\nUse /auth <PIN> to authenticate.');
+      await ctx.reply('🔐 Sesión expirada o no autenticada.\nUsa /auth <PIN> para autenticarte.');
       return;
     }
 
