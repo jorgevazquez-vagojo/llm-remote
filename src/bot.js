@@ -60,7 +60,7 @@ export function createBot() {
       : '';
 
     await ctx.reply(
-      '🤖 LLM Remote v2.4 — Telegram ↔ IA Bridge\n\n' +
+      '🤖 LLM Remote v2.5 — Telegram ↔ IA Bridge\n\n' +
       'Autenticarse: /auth <PIN>\n\n' +
       '📝 Comandos básicos:\n' +
       '  /ask <prompt> — Enviar prompt\n' +
@@ -152,7 +152,7 @@ export function createBot() {
 
       await ctx.reply(
         '🤖 Proveedores de IA:\n\n' + lines.join('\n') +
-        '\n\nUso: /ia <nombre>\nNombres: claude, openai, gemini, anthropic, groq'
+        '\n\nUso: /ia <nombre>\nNombres: claude, claude-remote, openai, gemini, gemini-pro, anthropic, groq'
       );
       return;
     }
@@ -758,7 +758,7 @@ export function createBot() {
   // /help
   bot.command('help', async (ctx) => {
     await ctx.reply(
-      '🤖 LLM Remote v2.4 — Comandos:\n\n' +
+      '🤖 LLM Remote v2.5 — Comandos:\n\n' +
       '🔐 Sesión:\n' +
       '  /auth <PIN> — Autenticarse\n' +
       '  /lock — Bloquear sesión\n' +

@@ -30,6 +30,18 @@ export const config = {
     bin: process.env.CLAUDE_BIN || 'claude',
     defaultWorkDir: process.env.DEFAULT_WORK_DIR || process.env.HOME,
     maxConcurrent: parseInt(process.env.MAX_CONCURRENT || '2', 10),
+    maxTurns: parseInt(process.env.CLAUDE_MAX_TURNS || '25', 10),
+    timeoutSec: parseInt(process.env.CLAUDE_TIMEOUT_SEC || '300', 10),
+  },
+  claudeRemote: {
+    host: process.env.CLAUDE_REMOTE_HOST || '',
+    port: parseInt(process.env.CLAUDE_REMOTE_PORT || '22', 10),
+    user: process.env.CLAUDE_REMOTE_USER || '',
+    key: process.env.CLAUDE_REMOTE_KEY || '',
+    remoteBin: process.env.CLAUDE_REMOTE_BIN || 'claude',
+    remoteWorkDir: process.env.CLAUDE_REMOTE_WORK_DIR || '',
+    maxTurns: parseInt(process.env.CLAUDE_MAX_TURNS || '25', 10),
+    timeoutSec: parseInt(process.env.CLAUDE_TIMEOUT_SEC || '300', 10),
   },
   security: {
     rateLimitPerMin: parseInt(process.env.RATE_LIMIT_PER_MIN || '10', 10),

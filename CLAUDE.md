@@ -43,9 +43,9 @@ After updating HTML manuals, regenerate PDFs:
 
 ## Project Overview
 
-- **LLM Remote** v2.4 — Encrypted Telegram ↔ AI multi-provider bridge
+- **LLM Remote** v2.5 — Encrypted Telegram ↔ AI multi-provider bridge
 - Node.js 20+ ESM, grammY, only 2 production deps (grammy, dotenv)
-- 6 AI providers: Claude Code (agentic), OpenAI, Gemini, Gemini Pro, Groq, Anthropic
+- 8 AI providers: Claude Code (local), Claude Code (remote/SSH), OpenAI, Gemini, Gemini Pro, Groq, Anthropic
 - Features: voice, vision, files, persona, web search, schedules, pipelines, MCP, SSH, groups, inter-bot shared memory
 - 75+ tests across 9 suites
 

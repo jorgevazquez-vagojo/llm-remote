@@ -1,4 +1,5 @@
 import { ClaudeProvider } from './claude.js';
+import { ClaudeRemoteProvider } from './claude-remote.js';
 import { OpenAIProvider } from './openai.js';
 import { GeminiProvider } from './gemini.js';
 import { AnthropicProvider } from './anthropic.js';
@@ -15,6 +16,18 @@ export class ProviderManager {
     this.#providers = {
       claude: new ClaudeProvider({
         bin: config.claude.bin,
+        maxTurns: config.claude.maxTurns,
+        timeoutSec: config.claude.timeoutSec,
+      }),
+      'claude-remote': new ClaudeRemoteProvider({
+        host: config.claudeRemote.host,
+        port: config.claudeRemote.port,
+        user: config.claudeRemote.user,
+        key: config.claudeRemote.key,
+        remoteBin: config.claudeRemote.remoteBin,
+        remoteWorkDir: config.claudeRemote.remoteWorkDir,
+        maxTurns: config.claudeRemote.maxTurns,
+        timeoutSec: config.claudeRemote.timeoutSec,
       }),
       openai: new OpenAIProvider({
         apiKey: config.providers?.openai?.apiKey,

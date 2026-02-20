@@ -2,6 +2,24 @@
 
 Todos los cambios notables de este proyecto se documentan aquí.
 
+## [2.5.0] — 2026-02-20
+
+### Añadido
+- **Claude Code local provider** (`claude`): ejecuta Claude CLI directamente en la máquina del bot
+  - Detección automática del binario `claude` o fallback a `npx @anthropic-ai/claude-code`
+  - Streaming de output con chunks cada 2s
+  - Soporte `--system-prompt`, `--max-turns`, `--verbose`
+  - Detección de errores: sin créditos, binario no encontrado
+- **Claude Code remote provider** (`claude-remote`): ejecuta Claude CLI en una máquina remota vía SSH
+  - Prompt inyectado vía stdin (`-p -`) — sin shell injection posible
+  - SSH hardened: `StrictHostKeyChecking=yes`, `ServerAliveInterval=30`, `ConnectTimeout=15`
+  - Soporte para reverse SSH tunnel (Mac ↔ servidor) o SSH directo
+  - Detección de errores: conexión fallida, host key, CLI no encontrado, sin créditos
+  - Config: `CLAUDE_REMOTE_HOST`, `CLAUDE_REMOTE_PORT`, `CLAUDE_REMOTE_USER`, `CLAUDE_REMOTE_KEY`
+- Nuevos env vars: `CLAUDE_MAX_TURNS`, `CLAUDE_TIMEOUT_SEC`, `CLAUDE_REMOTE_*`
+- Provider count: 8 (claude, claude-remote, openai, gemini, gemini-pro, anthropic, groq)
+- `/ia` ahora muestra todos los providers incluyendo claude-remote
+
 ## [2.4.0] — 2026-02-20
 
 ### Security Hardening
