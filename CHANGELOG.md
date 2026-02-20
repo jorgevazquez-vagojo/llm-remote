@@ -1,0 +1,35 @@
+# Changelog
+
+Todos los cambios notables de este proyecto se documentan aquí.
+
+## [1.2.0] — 2026-02-20
+
+### Añadido
+- Proveedor Groq (Llama 3.3 70B, gratis, ultra-rápido)
+- Instalador corporativo (`installer.sh`) con detección de OS
+- Servicio auto-arranque (launchd en macOS, systemd en Linux)
+- Manual PDF de 10 páginas en español
+- Desinstalador (`installer.sh --uninstall`)
+
+## [1.1.0] — 2026-02-20
+
+### Añadido
+- Soporte multi-proveedor: Claude Code + OpenAI + Gemini + Anthropic
+- Comando `/ia` para cambiar entre proveedores
+- Wizard de configuración actualizado (6 pasos)
+
+## [1.0.0] — 2026-02-20
+
+### Añadido
+- Bot Telegram con autenticación por PIN
+- Cifrado AES-256-GCM + HMAC + PBKDF2 (310K iteraciones)
+- Claude Code CLI como proveedor principal
+- Lista blanca de usuarios por Telegram ID
+- Anti-fuerza bruta (5 intentos → 15 min bloqueo)
+- Sesiones con auto-bloqueo por inactividad
+- Rate limiting por usuario
+- Audit log cifrado
+- Auto-borrado de mensajes opcional
+- Multi-proyecto (comando `/project`)
+- Wizard de configuración interactivo (`npm run setup`)
+- 11 tests del módulo de cifrado
