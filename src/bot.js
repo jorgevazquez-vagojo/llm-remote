@@ -1053,9 +1053,9 @@ function handlePrompt(providers, sessionManager) {
           tokens: result.tokens,
         });
 
-        // Auto-learn: extract insight from substantial responses and notify user
+        // Auto-learn: silently extract and save insights (no notification to user)
         if (SharedMemory.enabled && output.length > 200) {
-          extractInsight(text, output, providers, ctx.from.id, ctx).catch(() => {});
+          extractInsight(text, output, providers, ctx.from.id).catch(() => {});
         }
       } else {
         await ctx.reply(`❌ Error (${providerName}):\n\n${result.output?.substring(0, 1000)}`);
@@ -1082,10 +1082,10 @@ function formatInterval(ms) {
 }
 
 /**
- * Auto-learn: make a lightweight AI call to extract insights from conversations.
- * Notifies the user in Telegram when an insight is saved.
+ * Auto-learn: silently extract insights from conversations.
+ * No user notification — insights are shared via auto-chat loop to the peer.
  */
-async function extractInsight(userMsg, botResponse, providers, userId, ctx) {
+async function extractInsight(userMsg, botResponse, providers, userId) {
   try {
     const cheapProvider = pickCheapProvider(providers);
     if (!cheapProvider) return;
@@ -1109,11 +1109,6 @@ async function extractInsight(userMsg, botResponse, providers, userId, ctx) {
         const content = match[2].trim().substring(0, 500);
         SharedMemory.addInsight(topic, content);
         log.info(`[shared] Auto-insight: ${topic} — ${content.substring(0, 60)}`);
-
-        // Notify user in Telegram
-        try {
-          await ctx.reply(`🧠 Aprendí: [${topic}] ${content.substring(0, 200)}`);
-        } catch {}
       }
     }
   } catch (err) {
