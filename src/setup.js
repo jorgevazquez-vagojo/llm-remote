@@ -115,6 +115,11 @@ async function main() {
   const anthropicKey = await ask('  ANTHROPIC_API_KEY', existing.ANTHROPIC_API_KEY || '');
   const anthropicModel = anthropicKey ? await ask('  Modelo', existing.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514') : '';
 
+  console.log('\n  🟠 Groq (Llama 3.3 70B — gratis, ultra-rápido)');
+  console.log('  Obtén API key gratis en https://console.groq.com/keys');
+  const groqKey = await ask('  GROQ_API_KEY', existing.GROQ_API_KEY || '');
+  const groqModel = groqKey ? await ask('  Modelo', existing.GROQ_MODEL || 'llama-3.3-70b-versatile') : '';
+
   // 6. Logging
   header('6/6  Logging');
   const logLevel = await ask('Nivel de log (debug/info/warn/error)', existing.LOG_LEVEL || 'info');
@@ -155,6 +160,10 @@ GEMINI_MODEL=${geminiModel || 'gemini-2.5-flash-preview-05-20'}
 ANTHROPIC_API_KEY=${anthropicKey}
 ANTHROPIC_MODEL=${anthropicModel || 'claude-sonnet-4-20250514'}
 
+# Groq (gratis)
+GROQ_API_KEY=${groqKey}
+GROQ_MODEL=${groqModel || 'llama-3.3-70b-versatile'}
+
 # Logging
 LOG_LEVEL=${logLevel}
 `;
@@ -169,6 +178,7 @@ LOG_LEVEL=${logLevel}
   if (openaiKey) configured.push(`🟢 OpenAI — ${openaiModel || 'gpt-4o'}`);
   if (geminiKey) configured.push(`🔵 Gemini — ${geminiModel || '2.5 Flash'}`);
   if (anthropicKey) configured.push(`🟣 Anthropic API — ${anthropicModel || 'Sonnet'}`);
+  if (groqKey) configured.push(`🟠 Groq — ${groqModel || 'Llama 3.3 70B'}`);
 
   console.log(`
   .env guardado en: ${ENV_PATH}

@@ -2,6 +2,7 @@ import { ClaudeProvider } from './claude.js';
 import { OpenAIProvider } from './openai.js';
 import { GeminiProvider } from './gemini.js';
 import { AnthropicProvider } from './anthropic.js';
+import { GroqProvider } from './groq.js';
 import { config } from '../utils/config.js';
 
 const userProviders = new Map(); // userId -> providerName
@@ -25,6 +26,10 @@ export class ProviderManager {
       anthropic: new AnthropicProvider({
         apiKey: config.providers?.anthropic?.apiKey,
         model: config.providers?.anthropic?.model,
+      }),
+      groq: new GroqProvider({
+        apiKey: config.providers?.groq?.apiKey,
+        model: config.providers?.groq?.model,
       }),
     };
   }
