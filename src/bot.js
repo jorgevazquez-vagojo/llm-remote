@@ -1,4 +1,4 @@
-import { Bot, InputFile } from 'grammy';
+import { Bot } from 'grammy';
 import { config } from './utils/config.js';
 import { log } from './utils/logger.js';
 import { SessionManager } from './auth/session.js';
@@ -15,7 +15,6 @@ import { webSearch, formatSearchResults } from './search/web.js';
 import { Scheduler } from './scheduler/scheduler.js';
 import { MCPManager } from './mcp/client.js';
 import { Pipeline } from './pipeline/pipeline.js';
-import { textToSpeech } from './media/tts.js';
 import { SSHManager } from './remote/ssh.js';
 import { Persona } from './context/persona.js';
 import { existsSync } from 'node:fs';
@@ -676,13 +675,8 @@ export function createBot() {
           await ctx.reply((i === 0 ? header : '') + chunks[i] + (isLast ? footer : ''));
         }
 
-        // TTS response: audio in → audio out (always, natural flow)
-        try {
-          const audioBuffer = await textToSpeech(result.output.substring(0, 4000));
-          await ctx.replyWithVoice(new InputFile(audioBuffer, 'response.ogg'));
-        } catch (ttsErr) {
-          log.warn(`[tts] Failed for voice response: ${ttsErr.message}`);
-        }
+        // TTS disabled by default — use /voz to enable voice responses
+
       } else {
         await ctx.reply(`🎤 "${transcription.substring(0, 100)}"\n\n❌ Error: ${result.output?.substring(0, 500)}`);
       }
