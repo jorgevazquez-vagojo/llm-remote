@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Remote — Manual de Usuario</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --primary: #6c5ce7;
+    --primary-light: #a29bfe;
+    --accent: #00d4aa;
+    --dark: #1a1a2e;
+    --gray: #636e72;
+    --light: #f8f9fa;
+    --danger: #e74c3c;
+    --warning: #f39c12;
+    --success: #00b894;
+    --blue: #0984e3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #2d3436;
+    line-height: 1.7;
+    font-size: 11pt;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 15mm 20mm;
+    background: white;
+  }
+
+  @media print {
+    body { padding: 10mm 15mm; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+  }
+
+  /* Cover */
+  .cover {
+    text-align: center;
+    padding: 60px 0 40px;
+    border-bottom: 3px solid var(--primary);
+    margin-bottom: 40px;
+  }
+  .cover .logo {
+    font-size: 48pt;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -2px;
+    margin-bottom: 8px;
+  }
+  .cover .subtitle {
+    font-size: 16pt;
+    color: var(--gray);
+    font-weight: 300;
+    margin-bottom: 20px;
+  }
+  .cover .org {
+    font-size: 11pt;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .cover .meta {
+    margin-top: 30px;
+    font-size: 9pt;
+    color: var(--gray);
+  }
+  .cover .meta span { margin: 0 12px; }
+
+  /* Headers */
+  h1 {
+    font-size: 22pt;
+    color: var(--primary);
+    font-weight: 700;
+    margin: 35px 0 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary-light);
+  }
+  h2 {
+    font-size: 16pt;
+    color: var(--dark);
+    font-weight: 600;
+    margin: 25px 0 12px;
+  }
+  h3 {
+    font-size: 12pt;
+    color: var(--primary);
+    font-weight: 600;
+    margin: 18px 0 8px;
+  }
+
+  p { margin: 8px 0; }
+
+  /* Code */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: #f1f2f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 9.5pt;
+  }
+  pre {
+    background: var(--dark);
+    color: #dfe6e9;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+  .cmd { color: var(--accent); }
+  .comment { color: #636e72; }
+  .string { color: #fdcb6e; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 10pt;
+  }
+  th {
+    background: var(--primary);
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td {
+    padding: 8px 14px;
+    border-bottom: 1px solid #eee;
+  }
+  tr:nth-child(even) { background: #f8f9fa; }
+  tr:hover { background: #f1f2f6; }
+
+  /* Info boxes */
+  .box {
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 14px 0;
+    border-left: 4px solid;
+  }
+  .box-info { background: #e8f4fd; border-color: var(--blue); }
+  .box-warn { background: #fef9e7; border-color: var(--warning); }
+  .box-danger { background: #fde8e8; border-color: var(--danger); }
+  .box-success { background: #e8fdf5; border-color: var(--success); }
+  .box-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  /* List */
+  ul, ol {
+    margin: 8px 0 8px 24px;
+  }
+  li { margin: 4px 0; }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: white;
+  }
+  .badge-free { background: var(--success); }
+  .badge-paid { background: var(--warning); }
+  .badge-agent { background: var(--primary); }
+
+  /* Architecture diagram */
+  .diagram {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9pt;
+    line-height: 1.4;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 14px 0;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 40px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    font-size: 8.5pt;
+    color: var(--gray);
+    text-align: center;
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--light);
+    border-radius: 8px;
+    padding: 20px 30px;
+    margin: 20px 0;
+  }
+  .toc h2 { margin-top: 0; }
+  .toc ol { line-height: 2; }
+  .toc a { color: var(--primary); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="cover">
+  <div class="logo">Claude Remote</div>
+  <div class="subtitle">Puente Cifrado Telegram ↔ IA Multi-Proveedor</div>
+  <div class="org">Redegal · Digital Consulting Group</div>
+  <div class="meta">
+    <span>Versión 1.2</span>
+    <span>·</span>
+    <span>Febrero 2026</span>
+    <span>·</span>
+    <span>Documento interno</span>
+  </div>
+</div>
+
+<!-- ÍNDICE -->
+<div class="toc">
+  <h2>Índice</h2>
+  <ol>
+    <li><a href="#intro">Introducción</a></li>
+    <li><a href="#providers">Proveedores IA</a></li>
+    <li><a href="#install">Instalación</a></li>
+    <li><a href="#config">Configuración</a></li>
+    <li><a href="#usage">Uso desde Telegram</a></li>
+    <li><a href="#commands">Referencia de Comandos</a></li>
+    <li><a href="#security">Arquitectura de Seguridad</a></li>
+    <li><a href="#architecture">Arquitectura Técnica</a></li>
+    <li><a href="#troubleshooting">Resolución de Problemas</a></li>
+    <li><a href="#env">Variables de Entorno</a></li>
+  </ol>
+</div>
+
+<!-- 1. INTRODUCCIÓN -->
+<h1 id="intro">1. Introducción</h1>
+
+<p><strong>Claude Remote</strong> es una herramienta interna que permite a los miembros del equipo de Redegal interactuar con múltiples proveedores de IA (Claude Code, OpenAI, Gemini, Groq) directamente desde Telegram, con cifrado de nivel bancario.</p>
+
+<h3>¿Para qué sirve?</h3>
+<ul>
+  <li><strong>Desarrollo remoto</strong> — Ejecuta Claude Code en tu máquina desde cualquier lugar</li>
+  <li><strong>Consultas rápidas</strong> — Pregunta a GPT-4o, Gemini o Llama desde el móvil</li>
+  <li><strong>Multi-proyecto</strong> — Cambia entre proyectos con un comando</li>
+  <li><strong>Seguro</strong> — Todo cifrado, autenticado y con audit log</li>
+</ul>
+
+<div class="box box-info">
+  <div class="box-title">Requisitos previos</div>
+  Node.js 20+, un bot de Telegram (de @BotFather), y opcionalmente Claude Code CLI.
+</div>
+
+<!-- 2. PROVEEDORES -->
+<div class="page-break"></div>
+<h1 id="providers">2. Proveedores IA</h1>
+
+<p>Claude Remote soporta 5 proveedores. Cambia entre ellos con <code>/ia &lt;nombre&gt;</code> en Telegram.</p>
+
+<table>
+  <tr>
+    <th>Proveedor</th>
+    <th>Comando</th>
+    <th>Modo</th>
+    <th>Coste</th>
+  </tr>
+  <tr>
+    <td>🟣 <strong>Claude Code</strong></td>
+    <td><code>/ia claude</code></td>
+    <td><span class="badge badge-agent">Agentic</span> Lee/escribe ficheros, ejecuta comandos</td>
+    <td><span class="badge badge-paid">Según plan</span></td>
+  </tr>
+  <tr>
+    <td>🟢 <strong>OpenAI GPT-4o</strong></td>
+    <td><code>/ia openai</code></td>
+    <td>Chat API</td>
+    <td><span class="badge badge-paid">Pay-per-use</span></td>
+  </tr>
+  <tr>
+    <td>🔵 <strong>Gemini 2.5 Flash</strong></td>
+    <td><code>/ia gemini</code></td>
+    <td>Chat API</td>
+    <td><span class="badge badge-free">Gratis</span> 20 req/día</td>
+  </tr>
+  <tr>
+    <td>🟠 <strong>Groq Llama 3.3</strong></td>
+    <td><code>/ia groq</code></td>
+    <td>Chat API (ultra-rápido)</td>
+    <td><span class="badge badge-free">Gratis</span> 30 req/min</td>
+  </tr>
+  <tr>
+    <td>🟣 <strong>Anthropic Sonnet</strong></td>
+    <td><code>/ia anthropic</code></td>
+    <td>Chat API (sin agentic)</td>
+    <td><span class="badge badge-paid">Pay-per-use</span></td>
+  </tr>
+</table>
+
+<div class="box box-success">
+  <div class="box-title">Recomendación para uso diario</div>
+  Usa <strong>Groq</strong> para consultas rápidas (gratis, respuesta en &lt;1s) y <strong>Claude Code</strong> cuando necesites que la IA modifique archivos o ejecute comandos en tu máquina.
+</div>
+
+<h3>Diferencia entre Claude Code y Anthropic API</h3>
+<ul>
+  <li><strong>Claude Code</strong> (<code>/ia claude</code>) — Modo agentic completo. Puede leer ficheros, escribir código, ejecutar comandos, navegar tu proyecto. Usa el CLI de Claude Code.</li>
+  <li><strong>Anthropic API</strong> (<code>/ia anthropic</code>) — Solo chat. Responde preguntas pero no tiene acceso a tu sistema de archivos. Usa la API directamente.</li>
+</ul>
+
+<!-- 3. INSTALACIÓN -->
+<div class="page-break"></div>
+<h1 id="install">3. Instalación</h1>
+
+<h2>3.1 Instalación automática (recomendado)</h2>
+
+<p>Un solo comando que verifica requisitos, descarga, instala y configura:</p>
+
+<pre><code><span class="cmd">bash</span> installer.sh</code></pre>
+
+<p>El instalador hace todo automáticamente:</p>
+<ol>
+  <li>Verifica Node.js 20+, npm, git, Claude Code CLI</li>
+  <li>Descarga o actualiza el proyecto</li>
+  <li>Instala dependencias npm</li>
+  <li>Lanza el configurador interactivo (6 pasos)</li>
+  <li>Opcionalmente crea un servicio de auto-arranque</li>
+</ol>
+
+<h2>3.2 Instalación manual</h2>
+
+<pre><code><span class="comment"># 1. Clonar repositorio</span>
+<span class="cmd">git clone</span> &lt;repo-url&gt; ~/claude-remote
+<span class="cmd">cd</span> ~/claude-remote
+
+<span class="comment"># 2. Instalar dependencias</span>
+<span class="cmd">npm install</span>
+
+<span class="comment"># 3. Configurar</span>
+<span class="cmd">npm run</span> setup
+
+<span class="comment"># 4. Arrancar</span>
+<span class="cmd">npm start</span></code></pre>
+
+<h2>3.3 Requisitos</h2>
+
+<table>
+  <tr><th>Requisito</th><th>Versión</th><th>Obligatorio</th><th>Notas</th></tr>
+  <tr><td>Node.js</td><td>20+</td><td>Sí</td><td><code>brew install node</code> o nodejs.org</td></tr>
+  <tr><td>npm</td><td>cualquiera</td><td>Sí</td><td>Viene con Node.js</td></tr>
+  <tr><td>git</td><td>cualquiera</td><td>Sí</td><td><code>xcode-select --install</code> (macOS)</td></tr>
+  <tr><td>Claude Code CLI</td><td>cualquiera</td><td>No</td><td><code>npm i -g @anthropic-ai/claude-code</code></td></tr>
+</table>
+
+<div class="box box-warn">
+  <div class="box-title">Sin Claude Code CLI</div>
+  Si no instalas Claude Code CLI, el proveedor <code>/ia claude</code> no funcionará. Los demás proveedores (OpenAI, Gemini, Groq, Anthropic) sí funcionarán sin problema.
+</div>
+
+<!-- 4. CONFIGURACIÓN -->
+<div class="page-break"></div>
+<h1 id="config">4. Configuración</h1>
+
+<h2>4.1 Crear bot de Telegram</h2>
+<ol>
+  <li>Abre <strong>@BotFather</strong> en Telegram</li>
+  <li>Envía <code>/newbot</code></li>
+  <li>Elige un nombre (ej: <em>"Mi Claude Remote"</em>)</li>
+  <li>Elige un username (ej: <em>"mi_claude_remote_bot"</em>)</li>
+  <li>Copia el <strong>token</strong> que te da BotFather</li>
+</ol>
+
+<h2>4.2 Obtener tu Telegram User ID</h2>
+<ol>
+  <li>Abre <strong>@userinfobot</strong> en Telegram</li>
+  <li>Envía <code>/myid</code></li>
+  <li>Copia el número (ej: <em>1322574072</em>)</li>
+</ol>
+
+<h2>4.3 Obtener API keys (opcional)</h2>
+
+<table>
+  <tr><th>Proveedor</th><th>URL</th><th>Coste</th></tr>
+  <tr><td>Gemini</td><td>https://aistudio.google.com/apikey</td><td>Gratis</td></tr>
+  <tr><td>Groq</td><td>https://console.groq.com/keys</td><td>Gratis</td></tr>
+  <tr><td>OpenAI</td><td>https://platform.openai.com/api-keys</td><td>De pago</td></tr>
+  <tr><td>Anthropic</td><td>https://console.anthropic.com/settings/keys</td><td>De pago</td></tr>
+</table>
+
+<h2>4.4 Wizard de configuración</h2>
+
+<p>El wizard (<code>npm run setup</code>) te guía en 6 pasos:</p>
+
+<pre><code>╔══════════════════════════════════════════╗
+║   Claude Remote — Configurador          ║
+╚══════════════════════════════════════════╝
+
+── 1/6  Telegram ──
+  Token del bot: &lt;pegar token&gt;
+  IDs autorizados: &lt;tu user ID&gt;
+
+── 2/6  Seguridad ──
+  PIN: &lt;auto-generado o personalizado&gt;
+  Contraseña maestra: &lt;auto-generada&gt;
+
+── 3/6  Sesión y Límites ──
+  Timeout: 15 min
+  Max comandos/min: 10
+
+── 4/6  Claude Code CLI ──
+  Binario: claude
+  Directorio: /Users/tu-usuario
+
+── 5/6  Proveedores IA ──
+  OpenAI, Gemini, Anthropic, Groq (opcionales)
+
+── 6/6  Logging ──
+  Nivel: info</code></pre>
+
+<div class="box box-info">
+  <div class="box-title">Reconfigurar en cualquier momento</div>
+  Ejecuta <code>npm run setup</code> de nuevo. Los valores actuales aparecen como defaults.
+</div>
+
+<!-- 5. USO -->
+<div class="page-break"></div>
+<h1 id="usage">5. Uso desde Telegram</h1>
+
+<h2>5.1 Primer uso</h2>
+<ol>
+  <li>Arranca el bot: <code>npm start</code> (o el servicio lo hace automáticamente)</li>
+  <li>Abre tu bot en Telegram</li>
+  <li>Envía <code>/start</code> para ver los comandos</li>
+  <li>Autentícate: <code>/auth &lt;tu-PIN&gt;</code></li>
+  <li>El mensaje del PIN se borra automáticamente por seguridad</li>
+  <li>Escribe cualquier mensaje — va directamente al proveedor IA activo</li>
+</ol>
+
+<h2>5.2 Cambiar proveedor IA</h2>
+<pre><code><span class="comment"># Ver proveedores disponibles</span>
+/ia
+
+<span class="comment"># Cambiar a Groq (gratis, ultra-rápido)</span>
+/ia groq
+
+<span class="comment"># Cambiar a Claude Code (agentic)</span>
+/ia claude
+
+<span class="comment"># Cambiar a Gemini (gratis)</span>
+/ia gemini</code></pre>
+
+<h2>5.3 Trabajar con proyectos</h2>
+<pre><code><span class="comment"># Ver directorio actual</span>
+/project
+
+<span class="comment"># Cambiar a otro proyecto</span>
+/project ~/mi-proyecto
+
+<span class="comment"># Ahora los comandos a Claude Code operan en ~/mi-proyecto</span>
+Refactoriza el archivo main.js</code></pre>
+
+<h2>5.4 Sesiones y seguridad</h2>
+<pre><code><span class="comment"># Ver estado de la sesión</span>
+/status
+
+<span class="comment"># Bloquear manualmente</span>
+/lock
+
+<span class="comment"># Re-autenticarse</span>
+/auth &lt;PIN&gt;
+
+<span class="comment"># Ver historial (descifrado)</span>
+/history</code></pre>
+
+<!-- 6. COMANDOS -->
+<div class="page-break"></div>
+<h1 id="commands">6. Referencia de Comandos</h1>
+
+<table>
+  <tr>
+    <th>Comando</th>
+    <th>Descripción</th>
+    <th>Ejemplo</th>
+  </tr>
+  <tr>
+    <td><code>/start</code></td>
+    <td>Muestra ayuda y proveedores disponibles</td>
+    <td><code>/start</code></td>
+  </tr>
+  <tr>
+    <td><code>/auth &lt;PIN&gt;</code></td>
+    <td>Autenticarse. El mensaje se borra automáticamente.</td>
+    <td><code>/auth 830291</code></td>
+  </tr>
+  <tr>
+    <td><code>/ask &lt;prompt&gt;</code></td>
+    <td>Enviar prompt explícito al proveedor activo</td>
+    <td><code>/ask explica qué hace este regex</code></td>
+  </tr>
+  <tr>
+    <td><code>/ia [nombre]</code></td>
+    <td>Ver o cambiar proveedor IA</td>
+    <td><code>/ia groq</code></td>
+  </tr>
+  <tr>
+    <td><code>/project [ruta]</code></td>
+    <td>Ver o cambiar directorio de trabajo</td>
+    <td><code>/project ~/app</code></td>
+  </tr>
+  <tr>
+    <td><code>/status</code></td>
+    <td>Info de sesión, proveedor y proceso</td>
+    <td><code>/status</code></td>
+  </tr>
+  <tr>
+    <td><code>/history</code></td>
+    <td>Últimos 15 comandos (descifrado del audit log)</td>
+    <td><code>/history</code></td>
+  </tr>
+  <tr>
+    <td><code>/kill</code></td>
+    <td>Matar proceso Claude Code en ejecución</td>
+    <td><code>/kill</code></td>
+  </tr>
+  <tr>
+    <td><code>/lock</code></td>
+    <td>Bloquear sesión inmediatamente</td>
+    <td><code>/lock</code></td>
+  </tr>
+  <tr>
+    <td><code>/help</code></td>
+    <td>Mostrar todos los comandos</td>
+    <td><code>/help</code></td>
+  </tr>
+  <tr>
+    <td><em>(texto libre)</em></td>
+    <td>Se envía directamente al proveedor activo</td>
+    <td><em>¿Cómo optimizo esta query SQL?</em></td>
+  </tr>
+</table>
+
+<!-- 7. SEGURIDAD -->
+<div class="page-break"></div>
+<h1 id="security">7. Arquitectura de Seguridad</h1>
+
+<h2>7.1 Modelo de 8 capas</h2>
+
+<div class="diagram">
+  Telegram App                           Tu Máquina
+  ┌──────────┐    MTProto (cifrado)    ┌──────────────────────────────────────┐
+  │  Usuario  │ ◄──────────────────►   │  Claude Remote Bot                   │
+  │           │                        │                                      │
+  │  /auth    │    Capa 1: Transporte  │  Capa 2: Whitelist (Telegram ID)     │
+  │  PIN ━━━━━┿━━━━━━━━━━━━━━━━━━━━►  │  Capa 3: PIN (tiempo-constante)      │
+  │           │                        │  Capa 4: Anti-bruteforce (5 → lock)  │
+  │  Mensaje  │                        │  Capa 5: Sesión (auto-lock timeout)  │
+  │  ━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━►  │  Capa 6: Rate limit (N/min)         │
+  │           │                        │  Capa 7: Cifrado AES-256-GCM        │
+  │  ◄━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━   │  Capa 8: Auto-delete (opcional)     │
+  │ Respuesta │                        │                                      │
+  └──────────┘                         │  ┌─────────────┐ ┌──────────────┐   │
+                                       │  │ Claude Code  │ │ OpenAI/      │   │
+                                       │  │ CLI (agentic)│ │ Gemini/Groq  │   │
+                                       │  └─────────────┘ └──────────────┘   │
+                                       │                                      │
+                                       │  📁 Audit Log (AES-256-GCM + HMAC)  │
+                                       └──────────────────────────────────────┘</div>
+
+<h2>7.2 Cifrado</h2>
+
+<table>
+  <tr><th>Componente</th><th>Especificación</th></tr>
+  <tr><td>Algoritmo</td><td>AES-256-GCM (cifrado autenticado)</td></tr>
+  <tr><td>Derivación de clave</td><td>PBKDF2 con 310.000 iteraciones + SHA-512</td></tr>
+  <tr><td>IV (vector de inicialización)</td><td>16 bytes aleatorios por mensaje</td></tr>
+  <tr><td>Salt</td><td>32 bytes aleatorios por mensaje</td></tr>
+  <tr><td>Integridad</td><td>HMAC-SHA256 sobre todo el payload</td></tr>
+  <tr><td>Resultado</td><td>Cada cifrado es único, incluso con el mismo texto</td></tr>
+</table>
+
+<h2>7.3 Autenticación</h2>
+<ul>
+  <li><strong>Whitelist</strong> — Solo los Telegram IDs configurados pueden interactuar. Usuarios no autorizados son ignorados silenciosamente.</li>
+  <li><strong>PIN</strong> — Comparación en tiempo constante para prevenir ataques de timing.</li>
+  <li><strong>Anti-bruteforce</strong> — 5 intentos fallidos → bloqueo de 15 minutos.</li>
+  <li><strong>Sesiones</strong> — Auto-lock tras inactividad configurable (default: 15 min).</li>
+  <li><strong>Auto-delete</strong> — El mensaje con el PIN se borra automáticamente de Telegram.</li>
+</ul>
+
+<div class="box box-danger">
+  <div class="box-title">Importante: Seguridad por instalación</div>
+  Cada instalación genera su propia contraseña maestra de cifrado. Las claves no se comparten entre usuarios. Si pierdes tu <code>.env</code>, no hay forma de recuperar los datos del audit log.
+</div>
+
+<!-- 8. ARQUITECTURA -->
+<div class="page-break"></div>
+<h1 id="architecture">8. Arquitectura Técnica</h1>
+
+<h2>8.1 Stack tecnológico</h2>
+
+<table>
+  <tr><th>Componente</th><th>Tecnología</th><th>Justificación</th></tr>
+  <tr><td>Runtime</td><td>Node.js 20+</td><td>Async/await nativo, fetch nativo, sin dependencias nativas</td></tr>
+  <tr><td>Bot Telegram</td><td>grammY</td><td>Framework moderno, TypeScript-ready, middleware</td></tr>
+  <tr><td>Cifrado</td><td>node:crypto</td><td>Módulo nativo, AES-256-GCM, PBKDF2, HMAC</td></tr>
+  <tr><td>APIs IA</td><td>fetch nativo</td><td>Zero dependencias, HTTP estándar</td></tr>
+  <tr><td>Configuración</td><td>dotenv</td><td>Estándar de la industria</td></tr>
+  <tr><td>Audit log</td><td>NDJSON cifrado</td><td>Append-only, sin BD, portátil</td></tr>
+</table>
+
+<h2>8.2 Estructura del proyecto</h2>
+
+<pre><code>claude-remote/
+├── src/
+│   ├── index.js              <span class="comment"># Punto de entrada</span>
+│   ├── bot.js                <span class="comment"># Bot Telegram + handlers</span>
+│   ├── setup.js              <span class="comment"># Configurador interactivo</span>
+│   ├── auth/
+│   │   ├── guard.js          <span class="comment"># Whitelist + anti-bruteforce</span>
+│   │   └── session.js        <span class="comment"># Sesiones + timeout</span>
+│   ├── crypto/
+│   │   └── cipher.js         <span class="comment"># AES-256-GCM + HMAC + PBKDF2</span>
+│   ├── providers/
+│   │   ├── base.js           <span class="comment"># Interfaz base</span>
+│   │   ├── manager.js        <span class="comment"># Gestor multi-proveedor</span>
+│   │   ├── claude.js         <span class="comment"># Claude Code CLI</span>
+│   │   ├── openai.js         <span class="comment"># OpenAI GPT-4o</span>
+│   │   ├── gemini.js         <span class="comment"># Google Gemini</span>
+│   │   ├── groq.js           <span class="comment"># Groq Llama 3.3</span>
+│   │   └── anthropic.js      <span class="comment"># Anthropic Sonnet</span>
+│   ├── claude/
+│   │   └── formatter.js      <span class="comment"># Chunking para Telegram</span>
+│   ├── security/
+│   │   ├── ratelimit.js      <span class="comment"># Rate limiting</span>
+│   │   └── audit.js          <span class="comment"># Audit log cifrado</span>
+│   └── utils/
+│       ├── config.js         <span class="comment"># Configuración</span>
+│       ├── logger.js         <span class="comment"># Logger</span>
+│       └── keygen.js         <span class="comment"># Generador de claves</span>
+├── tests/
+│   └── crypto.test.js        <span class="comment"># 11 tests de cifrado</span>
+├── installer.sh              <span class="comment"># Instalador corporativo</span>
+├── .env.example              <span class="comment"># Plantilla de config</span>
+└── package.json</code></pre>
+
+<h2>8.3 Dependencias</h2>
+
+<p>Solo <strong>2 dependencias</strong> de producción (zero nativas):</p>
+<table>
+  <tr><th>Paquete</th><th>Versión</th><th>Función</th></tr>
+  <tr><td>grammy</td><td>^1.31</td><td>Framework bot Telegram</td></tr>
+  <tr><td>dotenv</td><td>^16.4</td><td>Variables de entorno</td></tr>
+</table>
+
+<!-- 9. TROUBLESHOOTING -->
+<div class="page-break"></div>
+<h1 id="troubleshooting">9. Resolución de Problemas</h1>
+
+<table>
+  <tr>
+    <th>Problema</th>
+    <th>Causa</th>
+    <th>Solución</th>
+  </tr>
+  <tr>
+    <td>El bot no responde</td>
+    <td>No está corriendo o token incorrecto</td>
+    <td>Verificar <code>npm start</code> y el token en <code>.env</code></td>
+  </tr>
+  <tr>
+    <td>"Session expired"</td>
+    <td>Timeout de inactividad</td>
+    <td>Enviar <code>/auth &lt;PIN&gt;</code> de nuevo</td>
+  </tr>
+  <tr>
+    <td>"Locked out"</td>
+    <td>5 intentos de PIN fallidos</td>
+    <td>Esperar 15 minutos</td>
+  </tr>
+  <tr>
+    <td>"Rate limited"</td>
+    <td>Demasiados comandos por minuto</td>
+    <td>Esperar unos segundos</td>
+  </tr>
+  <tr>
+    <td>"Provider not configured"</td>
+    <td>Falta API key del proveedor</td>
+    <td>Ejecutar <code>npm run setup</code> y añadir la API key</td>
+  </tr>
+  <tr>
+    <td>Claude Code no funciona</td>
+    <td>CLI no instalado</td>
+    <td><code>npm i -g @anthropic-ai/claude-code</code></td>
+  </tr>
+  <tr>
+    <td>Gemini error 429</td>
+    <td>Límite diario alcanzado (20 req)</td>
+    <td>Cambiar a Groq: <code>/ia groq</code></td>
+  </tr>
+  <tr>
+    <td>Error de cifrado</td>
+    <td>.env corrupto o cambiado</td>
+    <td>El audit log anterior no será legible. Borrar <code>data/</code> y empezar de nuevo.</td>
+  </tr>
+</table>
+
+<h3>Logs</h3>
+<pre><code><span class="comment"># Ver logs en tiempo real</span>
+<span class="cmd">tail -f</span> ~/claude-remote/data/claude-remote.log
+
+<span class="comment"># Si usa servicio en macOS</span>
+<span class="cmd">tail -f</span> ~/claude-remote/data/claude-remote.log
+
+<span class="comment"># Si usa servicio en Linux</span>
+<span class="cmd">journalctl</span> --user -u claude-remote -f</code></pre>
+
+<h3>Reconfigurar</h3>
+<pre><code><span class="cmd">cd</span> ~/claude-remote && <span class="cmd">npm run</span> setup</code></pre>
+
+<h3>Desinstalar</h3>
+<pre><code><span class="cmd">bash</span> ~/claude-remote/installer.sh --uninstall</code></pre>
+
+<!-- 10. VARIABLES -->
+<div class="page-break"></div>
+<h1 id="env">10. Variables de Entorno</h1>
+
+<table>
+  <tr>
+    <th>Variable</th>
+    <th>Req.</th>
+    <th>Default</th>
+    <th>Descripción</th>
+  </tr>
+  <tr><td><code>TELEGRAM_BOT_TOKEN</code></td><td>Sí</td><td>—</td><td>Token del bot de Telegram</td></tr>
+  <tr><td><code>AUTHORIZED_USERS</code></td><td>Sí</td><td>—</td><td>IDs Telegram autorizados (coma)</td></tr>
+  <tr><td><code>AUTH_PIN</code></td><td>Sí</td><td>—</td><td>PIN de autenticación</td></tr>
+  <tr><td><code>MASTER_PASSWORD</code></td><td>Sí</td><td>—</td><td>Contraseña maestra cifrado (16+ chars)</td></tr>
+  <tr><td><code>SESSION_TIMEOUT_MIN</code></td><td>No</td><td>15</td><td>Timeout sesión (minutos)</td></tr>
+  <tr><td><code>RATE_LIMIT_PER_MIN</code></td><td>No</td><td>10</td><td>Max comandos/minuto</td></tr>
+  <tr><td><code>AUTO_DELETE_SEC</code></td><td>No</td><td>0</td><td>Auto-borrar mensajes (0 = off)</td></tr>
+  <tr><td><code>CLAUDE_BIN</code></td><td>No</td><td>claude</td><td>Ruta binario Claude Code</td></tr>
+  <tr><td><code>DEFAULT_WORK_DIR</code></td><td>No</td><td>$HOME</td><td>Directorio trabajo por defecto</td></tr>
+  <tr><td><code>MAX_CONCURRENT</code></td><td>No</td><td>2</td><td>Procesos Claude simultáneos</td></tr>
+  <tr><td><code>OPENAI_API_KEY</code></td><td>No</td><td>—</td><td>API key OpenAI</td></tr>
+  <tr><td><code>OPENAI_MODEL</code></td><td>No</td><td>gpt-4o</td><td>Modelo OpenAI</td></tr>
+  <tr><td><code>GEMINI_API_KEY</code></td><td>No</td><td>—</td><td>API key Google Gemini</td></tr>
+  <tr><td><code>GEMINI_MODEL</code></td><td>No</td><td>gemini-2.5-flash</td><td>Modelo Gemini</td></tr>
+  <tr><td><code>ANTHROPIC_API_KEY</code></td><td>No</td><td>—</td><td>API key Anthropic</td></tr>
+  <tr><td><code>ANTHROPIC_MODEL</code></td><td>No</td><td>claude-sonnet-4</td><td>Modelo Anthropic</td></tr>
+  <tr><td><code>GROQ_API_KEY</code></td><td>No</td><td>—</td><td>API key Groq</td></tr>
+  <tr><td><code>GROQ_MODEL</code></td><td>No</td><td>llama-3.3-70b</td><td>Modelo Groq</td></tr>
+  <tr><td><code>LOG_LEVEL</code></td><td>No</td><td>info</td><td>debug/info/warn/error</td></tr>
+</table>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Claude Remote v1.2 · Redegal · Digital Consulting Group · Febrero 2026</p>
+  <p>Documento interno — Uso exclusivo del equipo de Redegal</p>
+</div>
+
+</body>
+</html>
