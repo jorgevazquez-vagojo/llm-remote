@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Claude Remote — Interactive Setup Wizard
- * Run: node src/setup.js
+ * Claude Remote — Configurador Interactivo
+ * Ejecutar: node src/setup.js
  */
 
 import { createInterface } from 'node:readline';
@@ -34,19 +34,24 @@ function header(text) {
   console.log(`${'─'.repeat(50)}`);
 }
 
+function mask(val) {
+  if (!val || val.length < 8) return val;
+  return val.substring(0, 4) + '...' + val.substring(val.length - 4);
+}
+
 async function main() {
   console.clear();
   console.log(`
-   ╔══════════════════════════════════════╗
-   ║   Claude Remote — Setup Wizard      ║
-   ║   Encrypted Telegram-Claude Bridge  ║
-   ╚══════════════════════════════════════╝
+   ╔══════════════════════════════════════════╗
+   ║   Claude Remote — Configurador          ║
+   ║   Telegram ↔ IA Bridge (cifrado)        ║
+   ╚══════════════════════════════════════════╝
   `);
 
-  // Load existing config if present
+  // Load existing config
   let existing = {};
   if (existsSync(ENV_PATH)) {
-    console.log('  Found existing .env — values shown as defaults.\n');
+    console.log('  .env existente encontrado — valores actuales como defaults.\n');
     const content = readFileSync(ENV_PATH, 'utf8');
     for (const line of content.split('\n')) {
       const match = line.match(/^([^#=]+)=(.*)$/);
@@ -55,103 +60,146 @@ async function main() {
   }
 
   // 1. Telegram
-  header('1/5  Telegram Configuration');
-  console.log('  Get a token from @BotFather on Telegram.\n');
+  header('1/6  Telegram');
+  console.log('  Obtén un token en @BotFather de Telegram.\n');
 
-  const botToken = await ask('Bot token', existing.TELEGRAM_BOT_TOKEN || '');
+  const botToken = await ask('Token del bot', existing.TELEGRAM_BOT_TOKEN || '');
   if (!botToken) {
-    console.log('\n  ERROR: Bot token is required. Exiting.');
+    console.log('\n  ERROR: El token es obligatorio. Saliendo.');
     process.exit(1);
   }
 
-  console.log('\n  Your Telegram user ID (send /myid to @userinfobot)');
-  const users = await ask('Authorized user IDs (comma-separated)', existing.AUTHORIZED_USERS || '');
+  console.log('\n  Tu Telegram user ID (envía /myid a @userinfobot)');
+  const users = await ask('IDs autorizados (separados por coma)', existing.AUTHORIZED_USERS || '');
   if (!users) {
-    console.log('\n  ERROR: At least one user ID is required. Exiting.');
+    console.log('\n  ERROR: Al menos un ID es obligatorio. Saliendo.');
     process.exit(1);
   }
 
-  // 2. Security
-  header('2/5  Security');
+  // 2. Seguridad
+  header('2/6  Seguridad');
   const defaultPin = existing.AUTH_PIN || String(Math.floor(100000 + Math.random() * 900000));
-  const pin = await ask('Auth PIN (6+ chars)', defaultPin);
+  const pin = await ask('PIN de autenticación (6+ chars)', defaultPin);
 
   const defaultPassword = existing.MASTER_PASSWORD || randomBytes(32).toString('base64');
-  console.log('\n  Master encryption password (auto-generated if empty)');
-  const masterPassword = await ask('Master password', defaultPassword);
+  console.log('\n  Contraseña maestra para cifrado (auto-generada si vacía)');
+  const masterPassword = await ask('Contraseña maestra', defaultPassword);
 
-  // 3. Session & Limits
-  header('3/5  Session & Limits');
-  const timeout = await ask('Session timeout (minutes)', existing.SESSION_TIMEOUT_MIN || '15');
-  const rateLimit = await ask('Max commands per minute', existing.RATE_LIMIT_PER_MIN || '10');
-  const autoDelete = await ask('Auto-delete messages (seconds, 0=off)', existing.AUTO_DELETE_SEC || '0');
+  // 3. Sesión y límites
+  header('3/6  Sesión y Límites');
+  const timeout = await ask('Timeout de sesión (minutos)', existing.SESSION_TIMEOUT_MIN || '15');
+  const rateLimit = await ask('Max comandos por minuto', existing.RATE_LIMIT_PER_MIN || '10');
+  const autoDelete = await ask('Auto-borrar mensajes (segundos, 0=off)', existing.AUTO_DELETE_SEC || '0');
 
   // 4. Claude Code
-  header('4/5  Claude Code');
-  const claudeBin = await ask('Claude binary path', existing.CLAUDE_BIN || 'claude');
-  const defaultDir = await ask('Default work directory', existing.DEFAULT_WORK_DIR || process.env.HOME);
-  const maxConcurrent = await ask('Max concurrent processes', existing.MAX_CONCURRENT || '2');
+  header('4/6  Claude Code CLI');
+  console.log('  Claude Code es el proveedor principal (agentic, acceso a ficheros).\n');
+  const claudeBin = await ask('Ruta al binario claude', existing.CLAUDE_BIN || 'claude');
+  const defaultDir = await ask('Directorio de trabajo por defecto', existing.DEFAULT_WORK_DIR || process.env.HOME);
+  const maxConcurrent = await ask('Procesos simultáneos max', existing.MAX_CONCURRENT || '2');
 
-  // 5. Logging
-  header('5/5  Logging');
-  const logLevel = await ask('Log level (debug/info/warn/error)', existing.LOG_LEVEL || 'info');
+  // 5. Proveedores IA adicionales
+  header('5/6  Proveedores IA (opcional)');
+  console.log('  Además de Claude Code CLI, puedes añadir otros proveedores.');
+  console.log('  Deja vacío para omitir. Usa /ia en Telegram para cambiar.\n');
+
+  console.log('  🟢 OpenAI (GPT-4o)');
+  const openaiKey = await ask('  OPENAI_API_KEY', existing.OPENAI_API_KEY || '');
+  const openaiModel = openaiKey ? await ask('  Modelo', existing.OPENAI_MODEL || 'gpt-4o') : '';
+
+  console.log('\n  🔵 Google Gemini (2.5 Flash — gratis 20 req/día)');
+  const geminiKey = await ask('  GEMINI_API_KEY', existing.GEMINI_API_KEY || '');
+  const geminiModel = geminiKey ? await ask('  Modelo', existing.GEMINI_MODEL || 'gemini-2.5-flash-preview-05-20') : '';
+
+  console.log('\n  🟣 Anthropic API (Claude Sonnet, sin agentic)');
+  const anthropicKey = await ask('  ANTHROPIC_API_KEY', existing.ANTHROPIC_API_KEY || '');
+  const anthropicModel = anthropicKey ? await ask('  Modelo', existing.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514') : '';
+
+  // 6. Logging
+  header('6/6  Logging');
+  const logLevel = await ask('Nivel de log (debug/info/warn/error)', existing.LOG_LEVEL || 'info');
 
   // Generate .env
   const envContent = `# Claude Remote Configuration
-# Generated: ${new Date().toISOString()}
+# Generado: ${new Date().toISOString()}
 
 # Telegram
 TELEGRAM_BOT_TOKEN=${botToken}
 AUTHORIZED_USERS=${users}
 
-# Security
+# Seguridad
 AUTH_PIN=${pin}
 MASTER_PASSWORD=${masterPassword}
 
-# Session
+# Sesión
 SESSION_TIMEOUT_MIN=${timeout}
 RATE_LIMIT_PER_MIN=${rateLimit}
 AUTO_DELETE_SEC=${autoDelete}
 
-# Claude Code
+# Claude Code CLI
 CLAUDE_BIN=${claudeBin}
 DEFAULT_WORK_DIR=${defaultDir}
 MAX_CONCURRENT=${maxConcurrent}
+
+# --- Proveedores IA ---
+
+# OpenAI
+OPENAI_API_KEY=${openaiKey}
+OPENAI_MODEL=${openaiModel || 'gpt-4o'}
+
+# Google Gemini
+GEMINI_API_KEY=${geminiKey}
+GEMINI_MODEL=${geminiModel || 'gemini-2.5-flash-preview-05-20'}
+
+# Anthropic API
+ANTHROPIC_API_KEY=${anthropicKey}
+ANTHROPIC_MODEL=${anthropicModel || 'claude-sonnet-4-20250514'}
 
 # Logging
 LOG_LEVEL=${logLevel}
 `;
 
-  writeFileSync(ENV_PATH, envContent, { mode: 0o600 }); // Only owner can read
+  writeFileSync(ENV_PATH, envContent, { mode: 0o600 });
 
-  header('Setup Complete!');
+  // Summary
+  header('Configuración completada');
+
+  const configured = [];
+  configured.push('🟣 Claude Code CLI (siempre activo)');
+  if (openaiKey) configured.push(`🟢 OpenAI — ${openaiModel || 'gpt-4o'}`);
+  if (geminiKey) configured.push(`🔵 Gemini — ${geminiModel || '2.5 Flash'}`);
+  if (anthropicKey) configured.push(`🟣 Anthropic API — ${anthropicModel || 'Sonnet'}`);
+
   console.log(`
-  .env written to: ${ENV_PATH}
-  File permissions: 600 (owner read/write only)
+  .env guardado en: ${ENV_PATH}
+  Permisos: 600 (solo tú puedes leerlo)
 
-  Your PIN: ${pin}
-  (Remember this — you need it to authenticate on Telegram)
+  Tu PIN: ${pin}
+  (Recuérdalo — lo necesitas para autenticarte en Telegram)
 
-  Next steps:
-    1. npm install
-    2. npm start
-    3. Open Telegram, find your bot
-    4. Send: /auth ${pin}
-    5. Then just type any message for Claude Code
+  Proveedores configurados:
+${configured.map(p => `    ${p}`).join('\n')}
 
-  Security notes:
-    - .env is chmod 600 (only you can read it)
-    - Add .env to .gitignore (already done)
-    - Master password encrypts all stored data
-    - PIN auto-deleted from Telegram after auth
-    - Session auto-locks after ${timeout} min inactivity
-    - Brute-force protection: 5 attempts then 15min lockout
+  Siguiente:
+    1. npm start
+    2. Abre tu bot en Telegram
+    3. Envía: /auth ${pin}
+    4. Escribe cualquier mensaje → va a Claude Code
+    5. /ia openai → cambia a GPT-4o
+    6. /ia gemini → cambia a Gemini (gratis)
+
+  Seguridad:
+    - .env chmod 600 (solo owner)
+    - Cifrado AES-256-GCM + HMAC para audit log
+    - PIN se borra de Telegram tras auth
+    - Auto-lock tras ${timeout} min de inactividad
+    - Anti-bruteforce: 5 intentos → 15 min lockout
   `);
 
   rl.close();
 }
 
 main().catch((err) => {
-  console.error('Setup error:', err);
+  console.error('Error de setup:', err);
   process.exit(1);
 });

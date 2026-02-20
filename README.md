@@ -1,11 +1,23 @@
 # Claude Remote
 
-**Puente cifrado Telegram ↔ Claude Code**
+**Puente cifrado Telegram ↔ IA (multi-proveedor)**
 
-Controla Claude Code desde cualquier lugar a través de Telegram, con seguridad de nivel bancario.
+Controla Claude Code, OpenAI, Gemini y Anthropic desde Telegram, con seguridad de nivel bancario.
+
+## Proveedores IA
+
+| Proveedor | Modo | Coste |
+|-----------|------|-------|
+| 🟣 **Claude Code CLI** | Agentic (acceso a ficheros, terminal) | Según plan |
+| 🟢 **OpenAI GPT-4o** | Chat (API directa) | Pay-per-use |
+| 🔵 **Gemini 2.5 Flash** | Chat (API directa) | Gratis (20 req/día) |
+| 🟣 **Anthropic Sonnet** | Chat (API directa, no agentic) | Pay-per-use |
+
+Cambia entre proveedores con `/ia` en Telegram.
 
 ## Características
 
+- **Multi-proveedor** — Claude Code + OpenAI + Gemini + Anthropic
 - **Cifrado AES-256-GCM** con detección de manipulación HMAC
 - **Derivación de claves PBKDF2** (310.000 iteraciones, SHA-512)
 - **Autenticación por PIN** con bloqueo por fuerza bruta (5 intentos → 15 min lockout)
@@ -15,8 +27,9 @@ Controla Claude Code desde cualquier lugar a través de Telegram, con seguridad 
 - **Log de auditoría cifrado** de todos los comandos
 - **Auto-borrado de mensajes** opcional
 - **Multi-proyecto** — cambia de directorio de trabajo sobre la marcha
-- **Streaming** — respuestas largas se envían en trozos
+- **Streaming** — respuestas largas se envían en trozos (Claude Code)
 - **Configurador por consola** interactivo
+- **Zero dependencias nativas** — solo JS puro + grammY
 
 ## Requisitos
 
@@ -49,24 +62,29 @@ Esto abre un asistente por consola que te guía paso a paso:
 ║   Encrypted Telegram-Claude Bridge  ║
 ╚══════════════════════════════════════╝
 
-── 1/5  Telegram Configuration ──
-  Bot token: <tu-token>
-  Authorized user IDs: <tu-id>
+── 1/6  Telegram ──
+  Token del bot: <tu-token>
+  IDs autorizados: <tu-id>
 
-── 2/5  Security ──
-  Auth PIN: <tu-pin>
-  Master password: <auto-generado>
+── 2/6  Seguridad ──
+  PIN: <tu-pin>
+  Contraseña maestra: <auto-generada>
 
-── 3/5  Session & Limits ──
-  Session timeout: 15 min
-  Max commands/min: 10
+── 3/6  Sesión y Límites ──
+  Timeout: 15 min
+  Max comandos/min: 10
 
-── 4/5  Claude Code ──
-  Claude binary: claude
-  Work directory: /Users/tu-usuario
+── 4/6  Claude Code CLI ──
+  Binario: claude
+  Directorio: /Users/tu-usuario
 
-── 5/5  Logging ──
-  Log level: info
+── 5/6  Proveedores IA ──
+  OpenAI API key: <opcional>
+  Gemini API key: <opcional>
+  Anthropic API key: <opcional>
+
+── 6/6  Logging ──
+  Nivel: info
 ```
 
 ### Opción 2: Manual
@@ -92,8 +110,10 @@ npm run dev
 1. Abre tu bot en Telegram
 2. Envía `/start` para ver los comandos
 3. Autentícate: `/auth <tu-PIN>`
-4. Envía cualquier mensaje — va directo a Claude Code
-5. O usa `/ask <prompt>` explícitamente
+4. Envía cualquier mensaje — va al proveedor activo (Claude Code por defecto)
+5. `/ia openai` — cambia a GPT-4o
+6. `/ia gemini` — cambia a Gemini (gratis)
+7. `/ia claude` — vuelve a Claude Code
 
 ### Comandos disponibles
 
@@ -101,11 +121,12 @@ npm run dev
 |---------|-------------|
 | `/start` | Muestra ayuda inicial |
 | `/auth <PIN>` | Autenticarse (el mensaje se borra automáticamente) |
-| `/ask <prompt>` | Enviar prompt a Claude Code |
+| `/ask <prompt>` | Enviar prompt al proveedor activo |
+| `/ia [nombre]` | Ver/cambiar proveedor IA (claude, openai, gemini, anthropic) |
 | `/project <ruta>` | Cambiar directorio de trabajo |
-| `/status` | Ver estado de sesión y proceso |
+| `/status` | Ver estado de sesión y proveedor |
 | `/history` | Ver historial de comandos (cifrado) |
-| `/kill` | Matar proceso Claude en ejecución |
+| `/kill` | Matar proceso en ejecución |
 | `/lock` | Bloquear sesión manualmente |
 | `/help` | Ver todos los comandos |
 
@@ -147,15 +168,21 @@ Telegram (MTProto) → Bot → Auth Guard → Rate Limit → Claude Code
 claude-remote/
 ├── src/
 │   ├── index.js           # Punto de entrada
-│   ├── bot.js             # Bot Telegram (grammY) + handlers
+│   ├── bot.js             # Bot Telegram (grammY) + handlers + /ia
 │   ├── setup.js           # Configurador interactivo por consola
 │   ├── auth/
 │   │   ├── guard.js       # Middleware de autenticación + anti-bruteforce
 │   │   └── session.js     # Gestión de sesiones + timeout
 │   ├── crypto/
 │   │   └── cipher.js      # AES-256-GCM + HMAC + PBKDF2
+│   ├── providers/
+│   │   ├── base.js        # Interfaz base de proveedores
+│   │   ├── manager.js     # Gestor multi-proveedor + /ia
+│   │   ├── claude.js      # Claude Code CLI (agentic)
+│   │   ├── openai.js      # OpenAI GPT-4o (API)
+│   │   ├── gemini.js      # Gemini 2.5 Flash (API, gratis)
+│   │   └── anthropic.js   # Anthropic Sonnet (API)
 │   ├── claude/
-│   │   ├── executor.js    # Ejecutor de Claude Code CLI
 │   │   └── formatter.js   # Formateo y chunking para Telegram
 │   ├── security/
 │   │   ├── ratelimit.js   # Rate limiting por usuario
@@ -167,6 +194,7 @@ claude-remote/
 ├── tests/
 │   └── crypto.test.js     # Tests del módulo de cifrado
 ├── data/                  # Datos cifrados (no en git)
+├── install.sh             # Instalador completo
 ├── .env.example           # Plantilla de configuración
 ├── .gitignore
 └── package.json
@@ -186,6 +214,12 @@ claude-remote/
 | `CLAUDE_BIN` | No | Ruta al binario de Claude (default: claude) |
 | `DEFAULT_WORK_DIR` | No | Directorio de trabajo por defecto |
 | `MAX_CONCURRENT` | No | Procesos Claude simultáneos (default: 2) |
+| `OPENAI_API_KEY` | No | API key de OpenAI |
+| `OPENAI_MODEL` | No | Modelo OpenAI (default: gpt-4o) |
+| `GEMINI_API_KEY` | No | API key de Google Gemini |
+| `GEMINI_MODEL` | No | Modelo Gemini (default: gemini-2.5-flash) |
+| `ANTHROPIC_API_KEY` | No | API key de Anthropic |
+| `ANTHROPIC_MODEL` | No | Modelo Anthropic (default: claude-sonnet-4) |
 | `LOG_LEVEL` | No | Nivel de log: debug/info/warn/error |
 
 ## Tests

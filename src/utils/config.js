@@ -35,6 +35,20 @@ export const config = {
     rateLimitPerMin: parseInt(process.env.RATE_LIMIT_PER_MIN || '10', 10),
     autoDeleteSec: parseInt(process.env.AUTO_DELETE_SEC || '0', 10),
   },
+  providers: {
+    openai: {
+      apiKey: process.env.OPENAI_API_KEY || '',
+      model: process.env.OPENAI_MODEL || 'gpt-4o',
+    },
+    gemini: {
+      apiKey: process.env.GEMINI_API_KEY || '',
+      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-preview-05-20',
+    },
+    anthropic: {
+      apiKey: process.env.ANTHROPIC_API_KEY || '',
+      model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
+    },
+  },
   log: {
     level: process.env.LOG_LEVEL || 'info',
   },
