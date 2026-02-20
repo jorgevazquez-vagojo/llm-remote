@@ -2,6 +2,17 @@
 
 Todos los cambios notables de este proyecto se documentan aquí.
 
+## [2.1.0] — 2026-02-20
+
+### Añadido
+- Soporte para grupos de Telegram: responde a comandos, menciones @bot, y replies
+- Text-to-Speech (TTS): /voz para activar respuestas como nota de voz (OpenAI + Groq)
+- SSH remoto: /ssh para ejecutar comandos en servidores configurados
+  - Añadir servidores: /ssh add <nombre> <user@host>
+  - Ejecutar: /ssh <servidor> <comando>
+  - Protección: bloqueo de comandos destructivos (rm -rf /, mkfs, etc.)
+- 11 tests nuevos (TTS + SSH) — total 53 tests
+
 ## [2.0.0] — 2026-02-20
 
 ### Añadido

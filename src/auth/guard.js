@@ -13,9 +13,33 @@ export function guardMiddleware(sessionManager) {
 
     // Check user is in whitelist
     if (!config.auth.authorizedUsers.includes(userId)) {
-      log.warn(`Usuario no autorizado bloqueado: ${userId} (@${ctx.from.username || 'desconocido'})`);
-      // Ignorar silenciosamente — no revelar que el bot existe
+      // In groups, silently ignore unauthorized users
+      // In private chat, also silent — don't reveal the bot exists
+      if (ctx.chat?.type === 'private') {
+        log.warn(`Usuario no autorizado bloqueado: ${userId} (@${ctx.from.username || 'desconocido'})`);
+      }
       return;
+    }
+
+    // In groups: only respond to commands, mentions, or replies to the bot
+    if (ctx.chat?.type === 'group' || ctx.chat?.type === 'supergroup') {
+      const text = ctx.message?.text || ctx.message?.caption || '';
+      const botMentioned = text.includes(`@${ctx.me?.username}`) ||
+                           ctx.message?.reply_to_message?.from?.id === ctx.me?.id;
+      const isCommand = text.startsWith('/');
+      const isVoice = ctx.message?.voice || ctx.message?.audio;
+      const isPhoto = ctx.message?.photo;
+      const isDocument = ctx.message?.document;
+
+      // In groups only process: commands, bot mentions, replies to bot, or media
+      if (!isCommand && !botMentioned && !isVoice && !isPhoto && !isDocument) {
+        return; // Ignore regular group messages
+      }
+
+      // Strip bot mention from text for cleaner processing
+      if (ctx.message?.text && ctx.me?.username) {
+        ctx.message.text = ctx.message.text.replace(`@${ctx.me.username}`, '').trim();
+      }
     }
 
     // Check brute-force lockout

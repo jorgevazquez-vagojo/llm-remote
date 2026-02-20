@@ -1,4 +1,4 @@
-import { Bot } from 'grammy';
+import { Bot, InputFile } from 'grammy';
 import { config } from './utils/config.js';
 import { log } from './utils/logger.js';
 import { SessionManager } from './auth/session.js';
@@ -15,6 +15,8 @@ import { webSearch, formatSearchResults } from './search/web.js';
 import { Scheduler } from './scheduler/scheduler.js';
 import { MCPManager } from './mcp/client.js';
 import { Pipeline } from './pipeline/pipeline.js';
+import { isTTSEnabled, toggleTTS, textToSpeech } from './media/tts.js';
+import { SSHManager } from './remote/ssh.js';
 import { existsSync } from 'node:fs';
 
 export function createBot() {
@@ -35,7 +37,7 @@ export function createBot() {
     const providerList = configured.map(p => `  ${p.displayName}`).join('\n');
 
     await ctx.reply(
-      '🤖 LLM Remote v2.0 — Telegram ↔ IA Bridge\n\n' +
+      '🤖 LLM Remote v2.1 — Telegram ↔ IA Bridge\n\n' +
       'Autenticarse: /auth <PIN>\n\n' +
       '📝 Comandos básicos:\n' +
       '  /ask <prompt> — Enviar prompt\n' +
@@ -43,14 +45,17 @@ export function createBot() {
       '  /clear — Limpiar contexto\n' +
       '  /project <ruta> — Cambiar directorio\n' +
       '  /status — Info de sesión\n\n' +
-      '🆕 Nuevas funciones:\n' +
-      '  🎤 Envía un audio → transcripción + IA\n' +
-      '  📷 Envía una foto → análisis visual\n' +
-      '  📎 Envía un archivo → análisis de contenido\n' +
+      '🆕 Funciones:\n' +
+      '  🎤 Audio → transcripción + IA\n' +
+      '  📷 Foto → análisis visual\n' +
+      '  📎 Archivo → análisis de contenido\n' +
+      '  /voz — Respuestas también como nota de voz\n' +
       '  /web <query> — Búsqueda web + resumen\n' +
       '  /schedule <intervalo> <prompt> — Tareas programadas\n' +
       '  /pipe paso1 → paso2 → paso3 — Pipelines\n' +
-      '  /mcp — Servidores MCP\n\n' +
+      '  /mcp — Servidores MCP\n' +
+      '  /ssh — Ejecutar comandos en servidores remotos\n\n' +
+      '👥 Funciona en grupos (menciona @bot o responde).\n\n' +
       `Proveedores:\n${providerList}`
     );
   });
@@ -143,12 +148,17 @@ export function createBot() {
     const schedules = Scheduler.list(ctx.from.id);
     const mcpServers = MCPManager.listServers();
 
+    const ttsStatus = isTTSEnabled(ctx.from.id) ? '🔊 Voz ON' : '🔇 Voz OFF';
+    const sshServers = SSHManager.listServers();
+
     await ctx.reply(
       formatStatus(info) +
       `\n\n🤖 ${provider.displayName}\n${providerStatus}` +
       `\n💬 Contexto: ${memStats.messages}/${memStats.maxMessages} mensajes` +
+      `\n${ttsStatus}` +
       (schedules.length ? `\n⏰ Tareas programadas: ${schedules.length}` : '') +
-      (mcpServers.length ? `\n🔌 MCP: ${mcpServers.filter(s => s.connected).length}/${mcpServers.length} conectados` : '')
+      (mcpServers.length ? `\n🔌 MCP: ${mcpServers.filter(s => s.connected).length}/${mcpServers.length} conectados` : '') +
+      (sshServers.length ? `\n🖥️ SSH: ${sshServers.length} servidores` : '')
     );
   });
 
@@ -409,10 +419,120 @@ export function createBot() {
     }
   });
 
+  // /voz — toggle TTS mode
+  bot.command('voz', async (ctx) => {
+    const enabled = toggleTTS(ctx.from.id);
+    logAudit(ctx.from.id, 'tts_toggle', { enabled });
+    await ctx.reply(enabled
+      ? '🔊 Modo voz ACTIVADO — Las respuestas se enviarán también como nota de voz.'
+      : '🔇 Modo voz DESACTIVADO — Solo respuestas de texto.');
+  });
+
+  // /ssh — remote server management
+  bot.command('ssh', async (ctx) => {
+    const args = ctx.match?.trim();
+
+    if (!args) {
+      const servers = SSHManager.listServers();
+      if (servers.length === 0) {
+        await ctx.reply(
+          '🖥️ SSH Remote\n\nNo hay servidores configurados.\n\n' +
+          'Añadir: /ssh add <nombre> <user@host> [puerto]\n' +
+          'Ejemplo: /ssh add prod root@37.27.92.122\n\n' +
+          'Ejecutar: /ssh <servidor> <comando>\n' +
+          'Listar: /ssh list\n' +
+          'Eliminar: /ssh remove <nombre>'
+        );
+        return;
+      }
+
+      const lines = servers.map(s => `  🖥️ ${s.name} — ${s.user}@${s.host}:${s.port}`);
+      await ctx.reply(
+        '🖥️ Servidores SSH:\n\n' + lines.join('\n') +
+        '\n\nEjecutar: /ssh <servidor> <comando>'
+      );
+      return;
+    }
+
+    const parts = args.split(/\s+/);
+    const subCmd = parts[0];
+
+    if (subCmd === 'add' && parts.length >= 3) {
+      const name = parts[1];
+      const userHost = parts[2];
+      const port = parseInt(parts[3], 10) || 22;
+      const keyPath = parts[4] || '';
+
+      const match = userHost.match(/^([^@]+)@(.+)$/);
+      if (!match) {
+        await ctx.reply('Formato: /ssh add <nombre> <user@host> [puerto] [keyPath]');
+        return;
+      }
+
+      const [, user, host] = match;
+      SSHManager.addServer(name, host, user, port, keyPath);
+      logAudit(ctx.from.id, 'ssh_add', { name, host, user, port });
+      await ctx.reply(`✅ Servidor "${name}" añadido: ${user}@${host}:${port}`);
+    } else if (subCmd === 'remove' && parts[1]) {
+      if (SSHManager.removeServer(parts[1])) {
+        logAudit(ctx.from.id, 'ssh_remove', { name: parts[1] });
+        await ctx.reply(`✅ Servidor "${parts[1]}" eliminado.`);
+      } else {
+        await ctx.reply(`❌ Servidor "${parts[1]}" no encontrado.`);
+      }
+    } else if (subCmd === 'list') {
+      const servers = SSHManager.listServers();
+      if (servers.length === 0) { await ctx.reply('No hay servidores SSH configurados.'); return; }
+      const lines = servers.map(s => `  🖥️ ${s.name} — ${s.user}@${s.host}:${s.port}`);
+      await ctx.reply('🖥️ Servidores SSH:\n\n' + lines.join('\n'));
+    } else {
+      // /ssh <server> <command>
+      const serverName = parts[0];
+      const command = parts.slice(1).join(' ');
+
+      if (!command) {
+        await ctx.reply(`Uso: /ssh ${serverName} <comando>\nEjemplo: /ssh ${serverName} df -h`);
+        return;
+      }
+
+      const server = SSHManager.getServer(serverName);
+      if (!server) {
+        await ctx.reply(`❌ Servidor "${serverName}" no encontrado.\nUsa /ssh list para ver servidores.`);
+        return;
+      }
+
+      const statusMsg = await ctx.reply(`🖥️ ${serverName}: ${command.substring(0, 80)}...`);
+
+      try {
+        const result = await SSHManager.execute(serverName, command);
+        try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
+
+        const icon = result.ok ? '✅' : '⚠️';
+        const exitCode = result.code !== 0 ? `\n\n📟 Exit code: ${result.code}` : '';
+        const output = result.output || '(sin salida)';
+
+        const chunks = formatOutput(output);
+        for (let i = 0; i < chunks.length; i++) {
+          const isFirst = i === 0;
+          const isLast = i === chunks.length - 1;
+          const header = isFirst ? `${icon} ${serverName}$ ${command.substring(0, 60)}\n\n` : '';
+          const footer = isLast ? exitCode : '';
+          await ctx.reply(header + chunks[i] + footer);
+        }
+
+        logAudit(ctx.from.id, 'ssh_exec', { server: serverName, command: command.substring(0, 100), exitCode: result.code });
+      } catch (err) {
+        try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
+        await ctx.reply(`❌ SSH Error: ${err.message}`);
+        log.error(`[ssh] ${serverName}: ${err.message}`);
+      }
+    }
+  });
+
   // /help
   bot.command('help', async (ctx) => {
     await ctx.reply(
-      '🤖 LLM Remote v2.0 — Comandos:\n\n' +
+      '🤖 LLM Remote v2.1 — Comandos:\n\n' +
       '🔐 Sesión:\n' +
       '  /auth <PIN> — Autenticarse\n' +
       '  /lock — Bloquear sesión\n' +
@@ -427,7 +547,8 @@ export function createBot() {
       '🆕 Multimedia:\n' +
       '  🎤 Audio — Transcripción automática + IA\n' +
       '  📷 Foto — Análisis visual con IA\n' +
-      '  📎 Archivo — Análisis de contenido\n\n' +
+      '  📎 Archivo — Análisis de contenido\n' +
+      '  /voz — Activar/desactivar respuestas por voz\n\n' +
       '🔍 Herramientas:\n' +
       '  /web <query> — Búsqueda web + resumen IA\n' +
       '  /schedule <intervalo> <prompt> — Tarea programada\n' +
@@ -435,6 +556,11 @@ export function createBot() {
       '  /unschedule <id> — Eliminar tarea\n' +
       '  /pipe paso1 → paso2 — Pipeline\n' +
       '  /mcp — Servidores MCP\n\n' +
+      '🖥️ Remoto:\n' +
+      '  /ssh add <nombre> <user@host> — Añadir servidor\n' +
+      '  /ssh <servidor> <comando> — Ejecutar comando\n' +
+      '  /ssh list — Ver servidores\n\n' +
+      '👥 Grupos: responde a comandos, menciones @bot y respuestas.\n\n' +
       'O escribe directamente — va al proveedor activo.'
     );
   });
@@ -491,6 +617,16 @@ export function createBot() {
         for (let i = 0; i < chunks.length; i++) {
           const isLast = i === chunks.length - 1;
           await ctx.reply((i === 0 ? header : '') + chunks[i] + (isLast ? footer : ''));
+        }
+
+        // TTS response for voice messages (natural flow: audio in → audio out)
+        if (isTTSEnabled(ctx.from.id)) {
+          try {
+            const audioBuffer = await textToSpeech(result.output.substring(0, 4000));
+            await ctx.replyWithVoice(new InputFile(audioBuffer, 'response.ogg'));
+          } catch (ttsErr) {
+            log.warn(`[tts] Failed: ${ttsErr.message}`);
+          }
         }
       } else {
         await ctx.reply(`🎤 "${transcription.substring(0, 100)}"\n\n❌ Error: ${result.output?.substring(0, 500)}`);
@@ -700,6 +836,16 @@ function handlePrompt(providers, sessionManager) {
           const isLast = i === chunks.length - 1;
           await ctx.reply(chunks[i] + (isLast ? footer : ''));
           if (chunks.length > 1) await new Promise(r => setTimeout(r, 500));
+        }
+
+        // Send voice note if TTS is enabled
+        if (isTTSEnabled(ctx.from.id)) {
+          try {
+            const audioBuffer = await textToSpeech(output.substring(0, 4000));
+            await ctx.replyWithVoice(new InputFile(audioBuffer, 'response.ogg'));
+          } catch (ttsErr) {
+            log.warn(`[tts] Failed: ${ttsErr.message}`);
+          }
         }
 
         logAudit(ctx.from.id, 'response', {

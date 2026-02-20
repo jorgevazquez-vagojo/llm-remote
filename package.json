@@ -1,6 +1,6 @@
 {
   "name": "llm-remote",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Puente cifrado Telegram ↔ IA Multi-Proveedor (Claude Code, OpenAI, Gemini, Groq)",
   "type": "module",
   "license": "MIT",
@@ -29,7 +29,7 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "setup": "node src/setup.js",
-    "test": "node --test tests/crypto.test.js",
+    "test": "node --test tests/*.test.js",
     "keygen": "node src/utils/keygen.js"
   },
   "dependencies": {
