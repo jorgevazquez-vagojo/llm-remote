@@ -2,6 +2,20 @@
 
 Todos los cambios notables de este proyecto se documentan aquí.
 
+## [2.0.0] — 2026-02-20
+
+### Añadido
+- Notas de voz: transcripción automática (Groq Whisper gratis) + envío a IA
+- Análisis de fotos/capturas con proveedores Vision (GPT-4o, Claude, Gemini)
+- Procesamiento de archivos (código, CSV, PDF, texto) enviados por Telegram
+- Contexto conversacional: memoria de hasta 20 mensajes por usuario
+- Comando /clear para limpiar contexto
+- Búsqueda web /web con resumen IA (DuckDuckGo, sin API key)
+- Tareas programadas: /schedule, /schedules, /unschedule (intervalos: 5m, 1h, 24h, 7d)
+- Pipelines: /pipe paso1 → paso2 → paso3 (encadenar operaciones)
+- Cliente MCP: /mcp add, tools, call (conectar herramientas externas)
+- Todos los proveedores soportan historial de conversación
+
 ## [1.3.0] — 2026-02-20
 
 ### Cambiado

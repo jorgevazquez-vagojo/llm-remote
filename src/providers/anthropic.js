@@ -17,12 +17,17 @@ export class AnthropicProvider extends BaseProvider {
   }
 
   async execute(prompt, context = {}) {
-    const { workDir } = context;
+    const { workDir, history = [] } = context;
 
     const model = this.config.model || 'claude-sonnet-4-20250514';
     const systemPrompt = `Eres un asistente experto en ingeniería de software. El usuario trabaja en: ${workDir}. Responde de forma concisa en español. Código en inglés.`;
 
     log.info(`[anthropic] Calling ${model}`);
+
+    const messages = [
+      ...history.map(m => ({ role: m.role, content: m.content })),
+      { role: 'user', content: prompt },
+    ];
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -35,9 +40,7 @@ export class AnthropicProvider extends BaseProvider {
         model,
         max_tokens: 4096,
         system: systemPrompt,
-        messages: [
-          { role: 'user', content: prompt },
-        ],
+        messages,
       }),
     });
 

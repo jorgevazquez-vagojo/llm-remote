@@ -2,9 +2,11 @@ import { config } from './utils/config.js';
 import { log } from './utils/logger.js';
 import { initAudit, closeAudit } from './security/audit.js';
 import { createBot } from './bot.js';
+import { Scheduler } from './scheduler/scheduler.js';
+import { MCPManager } from './mcp/client.js';
 
 async function main() {
-  log.info('LLM Remote iniciando...');
+  log.info('LLM Remote v2.0 iniciando...');
 
   // Inicializar audit log cifrado
   initAudit();
@@ -16,6 +18,8 @@ async function main() {
   // Apagado limpio
   const shutdown = async (signal) => {
     log.info(`Señal ${signal} recibida, apagando...`);
+    Scheduler.stop();
+    MCPManager.stopAll();
     bot.stop();
     closeAudit();
     process.exit(0);

@@ -18,12 +18,20 @@ export class GeminiProvider extends BaseProvider {
   }
 
   async execute(prompt, context = {}) {
-    const { workDir } = context;
+    const { workDir, history = [] } = context;
 
     const model = this.config.model || 'gemini-2.5-flash-preview-05-20';
     const systemPrompt = `Eres un asistente experto en ingeniería de software. El usuario trabaja en: ${workDir}. Responde de forma concisa en español. Código en inglés.`;
 
     log.info(`[gemini] Calling ${model}`);
+
+    const contents = [
+      ...history.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      })),
+      { role: 'user', parts: [{ text: prompt }] },
+    ];
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.config.apiKey}`;
 
@@ -32,9 +40,7 @@ export class GeminiProvider extends BaseProvider {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [
-          { role: 'user', parts: [{ text: prompt }] },
-        ],
+        contents,
         generationConfig: {
           maxOutputTokens: 4096,
           temperature: 0.3,

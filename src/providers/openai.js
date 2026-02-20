@@ -17,12 +17,18 @@ export class OpenAIProvider extends BaseProvider {
   }
 
   async execute(prompt, context = {}) {
-    const { workDir } = context;
+    const { workDir, history = [] } = context;
 
     const model = this.config.model || 'gpt-4o';
     const systemPrompt = `Eres un asistente experto en ingeniería de software. El usuario trabaja en: ${workDir}. Responde de forma concisa en español. Código en inglés.`;
 
     log.info(`[openai] Calling ${model}`);
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...history,
+      { role: 'user', content: prompt },
+    ];
 
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -32,10 +38,7 @@ export class OpenAIProvider extends BaseProvider {
       },
       body: JSON.stringify({
         model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt },
-        ],
+        messages,
         max_tokens: 4096,
         temperature: 0.3,
       }),
