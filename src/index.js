@@ -7,18 +7,18 @@ import { MCPManager } from './mcp/client.js';
 import { SharedMemory } from './context/shared-memory.js';
 
 async function main() {
-  log.info('LLM Remote v2.3 iniciando...');
+  log.info('LLM Remote v2.4 iniciando...');
 
   // Inicializar audit log cifrado
   initAudit();
   log.info('Audit log inicializado');
 
   if (SharedMemory.enabled) {
-    log.info(`[shared] Bot: ${SharedMemory.botName}, Peer: ${SharedMemory.peerName || 'ninguno'}, Auto: ${SharedMemory.autoChat}`);
+    log.info(`[shared] Bot: ${SharedMemory.botName}, Peers: ${SharedMemory.peerNames.join(', ') || 'ninguno'}, Auto: ${SharedMemory.autoChat}`);
   }
 
   // Crear y arrancar bot
-  const bot = createBot();
+  const { bot, sessionManager } = createBot();
 
   // Apagado limpio
   const shutdown = async (signal) => {
@@ -36,7 +36,7 @@ async function main() {
 
   // Arrancar
   await bot.start({
-    onStart: () => {
+    onStart: async () => {
       log.info('Bot arrancado correctamente');
       log.info(`Usuarios autorizados: ${config.auth.authorizedUsers.join(', ')}`);
       log.info(`Timeout de sesión: ${config.auth.sessionTimeoutMs / 60000} min`);
@@ -45,6 +45,25 @@ async function main() {
 
       if (SharedMemory.autoChat) {
         log.info(`[shared] Auto-chat loop running (check every 30s)`);
+      }
+
+      // Notify authorized users that the bot has restarted
+      for (const userId of config.auth.authorizedUsers) {
+        try {
+          const isRestored = sessionManager.isAuthenticated(userId);
+          const botName = SharedMemory.botName || 'LLM Remote';
+          if (isRestored) {
+            await bot.api.sendMessage(userId,
+              `🔄 ${botName} reiniciado.\n✅ Tu sesión ha sido restaurada automáticamente.\n\nEscribe algo para continuar.`
+            );
+          } else {
+            await bot.api.sendMessage(userId,
+              `🔄 ${botName} reiniciado.\n🔐 Sesión expirada. Usa /auth <PIN> para autenticarte.`
+            );
+          }
+        } catch (err) {
+          log.debug(`[notify] Could not notify user ${userId}: ${err.message}`);
+        }
       }
     },
   });

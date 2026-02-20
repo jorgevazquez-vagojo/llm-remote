@@ -2,6 +2,33 @@
 
 Todos los cambios notables de este proyecto se documentan aquí.
 
+## [2.4.0] — 2026-02-20
+
+### Security Hardening
+- **Session persistence**: sesiones se guardan en disco (`data/sessions.json`) y se restauran al reiniciar Docker
+  - Los usuarios ya NO pierden autenticación cuando el container se reinicia
+  - Solo se restauran sesiones que no han expirado
+- **Startup notification**: al reiniciar, cada usuario autorizado recibe un mensaje indicando si su sesión fue restaurada o necesita re-autenticarse
+- **HMAC constant-time**: usa `crypto.timingSafeEqual` en vez de `Buffer.equals` (previene timing attacks)
+- **PIN constant-time**: usa `crypto.timingSafeEqual` en session.js
+- **SSH hardening**: bloqueados metacaracteres de shell (`;|&\`$(){}\\<>!`) + lista de comandos peligrosos ampliada
+  - Previene inyección de comandos: `$(reboot)`, backticks, pipes, etc.
+  - Bloqueados: rm, mkfs, dd, shutdown, reboot, passwd, chmod, chown, iptables, systemctl, crontab...
+  - curl/wget con `-o`/`-O` bloqueados (previene download+execute)
+  - `StrictHostKeyChecking=yes` (era `accept-new`, vulnerable a MITM)
+- **MCP restricción**: solo permite binarios aprobados: npx, node, python, python3, uvx, deno
+  - Previene `/mcp add evil bash -c "cat /etc/passwd"`
+- **/project restricción**: bloqueados paths sensibles `/etc`, `/dev`, `/proc`, `/sys`, `/boot`, `/sbin`
+- **SSH rate limit**: comandos SSH ahora cuentan para el rate limiter
+- **Error sanitization**: tokens, API keys y Bearer tokens se redactan de mensajes de error
+  - Previene filtrado accidental de secretos vía errores de Telegram/Gemini/OpenAI
+- **Dockerfile non-root**: container corre como usuario `appuser` (UID 1001), no como root
+- **CLAUDE.md limpio**: eliminadas todas las credenciales del servidor del archivo committed
+
+### Cambiado
+- `createBot()` ahora retorna `{ bot, sessionManager }` para permitir notificación en startup
+- index.js actualizado para v2.4
+
 ## [2.3.0] — 2026-02-20
 
 ### Añadido

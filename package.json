@@ -1,6 +1,6 @@
 {
   "name": "llm-remote",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Encrypted Telegram ↔ AI multi-provider bridge (Claude Code, OpenAI, Gemini, Groq, Anthropic). Voice, vision, files, SSH, TTS, pipelines, MCP, inter-bot shared memory.",
   "type": "module",
   "license": "MIT",

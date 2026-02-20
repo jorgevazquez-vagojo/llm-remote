@@ -19,6 +19,24 @@ import { SSHManager } from './remote/ssh.js';
 import { Persona } from './context/persona.js';
 import { SharedMemory } from './context/shared-memory.js';
 import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+/**
+ * Sanitize error messages — strip sensitive tokens/keys before showing to user.
+ */
+function sanitizeError(msg) {
+  if (!msg) return '(error desconocido)';
+  let safe = String(msg);
+  // Strip Telegram bot token
+  if (config.telegram.token) {
+    safe = safe.replaceAll(config.telegram.token, '[TOKEN_REDACTED]');
+  }
+  // Strip API keys from URLs (Gemini key=XXX pattern)
+  safe = safe.replace(/key=[A-Za-z0-9_-]{20,}/g, 'key=[REDACTED]');
+  // Strip Bearer tokens
+  safe = safe.replace(/Bearer\s+[A-Za-z0-9_-]{20,}/g, 'Bearer [REDACTED]');
+  return safe;
+}
 
 export function createBot() {
   const bot = new Bot(config.telegram.token);
@@ -27,7 +45,7 @@ export function createBot() {
 
   // Init scheduler and MCP
   Scheduler.init(bot, providers);
-  MCPManager.loadConfig().catch(err => log.warn(`[mcp] Init: ${err.message}`));
+  MCPManager.loadConfig().catch(err => log.warn(`[mcp] Init: ${sanitizeError(err.message)}`));
 
   // Global middleware: auth guard
   bot.use(guardMiddleware(sessionManager));
@@ -42,7 +60,7 @@ export function createBot() {
       : '';
 
     await ctx.reply(
-      '🤖 LLM Remote v2.3 — Telegram ↔ IA Bridge\n\n' +
+      '🤖 LLM Remote v2.4 — Telegram ↔ IA Bridge\n\n' +
       'Autenticarse: /auth <PIN>\n\n' +
       '📝 Comandos básicos:\n' +
       '  /ask <prompt> — Enviar prompt\n' +
@@ -193,18 +211,29 @@ export function createBot() {
     );
   });
 
-  // /project <path>
+  // /project <path> — change working directory (restricted to safe paths)
   bot.command('project', async (ctx) => {
     const dir = ctx.match?.trim();
     if (!dir) {
       await ctx.reply(`📁 Actual: ${sessionManager.getWorkDir(ctx.from.id)}\n\nUso: /project <ruta>`);
       return;
     }
-    if (!existsSync(dir)) { await ctx.reply(`❌ Directorio no encontrado: ${dir}`); return; }
 
-    sessionManager.setWorkDir(ctx.from.id, dir);
-    logAudit(ctx.from.id, 'project_changed', { dir });
-    await ctx.reply(`📁 Directorio: ${dir}`);
+    const resolved = resolve(dir);
+
+    // Security: block sensitive system paths
+    const BLOCKED_PATHS = ['/etc', '/dev', '/proc', '/sys', '/boot', '/sbin', '/usr/sbin', '/var/run'];
+    const isBlocked = BLOCKED_PATHS.some(bp => resolved === bp || resolved.startsWith(bp + '/'));
+    if (isBlocked) {
+      await ctx.reply(`❌ Directorio bloqueado por seguridad: ${resolved}`);
+      return;
+    }
+
+    if (!existsSync(resolved)) { await ctx.reply(`❌ Directorio no encontrado: ${resolved}`); return; }
+
+    sessionManager.setWorkDir(ctx.from.id, resolved);
+    logAudit(ctx.from.id, 'project_changed', { dir: resolved });
+    await ctx.reply(`📁 Directorio: ${resolved}`);
   });
 
   // /kill
@@ -274,7 +303,7 @@ export function createBot() {
       logAudit(ctx.from.id, 'web_search', { query, results: results.length });
     } catch (err) {
       try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-      await ctx.reply(`❌ Error en búsqueda: ${err.message}`);
+      await ctx.reply(`❌ Error en búsqueda: ${sanitizeError(err.message)}`);
     }
   });
 
@@ -419,7 +448,7 @@ export function createBot() {
         logAudit(ctx.from.id, 'mcp_add', { name, tools: server.tools.length });
       } catch (err) {
         try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-        await ctx.reply(`❌ Error conectando a ${name}: ${err.message}`);
+        await ctx.reply(`❌ Error conectando a ${name}: ${sanitizeError(err.message)}`);
       }
     } else if (subCmd === 'remove' && parts[1]) {
       if (MCPManager.removeServer(parts[1])) {
@@ -446,7 +475,7 @@ export function createBot() {
         for (const chunk of chunks) await ctx.reply(chunk);
       } catch (err) {
         try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-        await ctx.reply(`❌ Error: ${err.message}`);
+        await ctx.reply(`❌ Error: ${sanitizeError(err.message)}`);
       }
     } else {
       await ctx.reply('Uso: /mcp add|remove|tools|call');
@@ -567,6 +596,9 @@ export function createBot() {
       await ctx.reply('🖥️ Servidores SSH:\n\n' + lines.join('\n'));
     } else {
       // /ssh <server> <command>
+      const sshRateCheck = checkRateLimit(ctx.from.id);
+      if (!sshRateCheck.allowed) { await ctx.reply(`⏳ Rate limit. Espera ${sshRateCheck.waitSec}s.`); return; }
+
       const serverName = parts[0];
       const command = parts.slice(1).join(' ');
 
@@ -603,8 +635,8 @@ export function createBot() {
         logAudit(ctx.from.id, 'ssh_exec', { server: serverName, command: command.substring(0, 100), exitCode: result.code });
       } catch (err) {
         try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-        await ctx.reply(`❌ SSH Error: ${err.message}`);
-        log.error(`[ssh] ${serverName}: ${err.message}`);
+        await ctx.reply(`❌ SSH Error: ${sanitizeError(err.message)}`);
+        log.error(`[ssh] ${serverName}: ${sanitizeError(err.message)}`);
       }
     }
   });
@@ -726,7 +758,7 @@ export function createBot() {
   // /help
   bot.command('help', async (ctx) => {
     await ctx.reply(
-      '🤖 LLM Remote v2.3 — Comandos:\n\n' +
+      '🤖 LLM Remote v2.4 — Comandos:\n\n' +
       '🔐 Sesión:\n' +
       '  /auth <PIN> — Autenticarse\n' +
       '  /lock — Bloquear sesión\n' +
@@ -825,12 +857,12 @@ export function createBot() {
         // TTS disabled by default — use /voz to enable voice responses
 
       } else {
-        await ctx.reply(`🎤 "${transcription.substring(0, 100)}"\n\n❌ Error: ${result.output?.substring(0, 500)}`);
+        await ctx.reply(`🎤 "${transcription.substring(0, 100)}"\n\n❌ Error: ${sanitizeError(result.output?.substring(0, 500))}`);
       }
     } catch (err) {
       try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-      await ctx.reply(`❌ Error transcribiendo audio: ${err.message}`);
-      log.error(`[voice] Error: ${err.message}`);
+      await ctx.reply(`❌ Error transcribiendo audio: ${sanitizeError(err.message)}`);
+      log.error(`[voice] Error: ${sanitizeError(err.message)}`);
     }
   });
 
@@ -874,8 +906,8 @@ export function createBot() {
       logAudit(ctx.from.id, 'vision', { provider: result.provider, caption: caption.substring(0, 100) });
     } catch (err) {
       try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-      await ctx.reply(`❌ Error analizando imagen: ${err.message}`);
-      log.error(`[vision] Error: ${err.message}`);
+      await ctx.reply(`❌ Error analizando imagen: ${sanitizeError(err.message)}`);
+      log.error(`[vision] Error: ${sanitizeError(err.message)}`);
     }
   });
 
@@ -915,7 +947,7 @@ export function createBot() {
         return;
       } catch (err) {
         try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-        await ctx.reply(`❌ Error: ${err.message}`);
+        await ctx.reply(`❌ Error: ${sanitizeError(err.message)}`);
         return;
       }
     }
@@ -969,12 +1001,12 @@ export function createBot() {
       }
     } catch (err) {
       try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-      await ctx.reply(`❌ Error procesando archivo: ${err.message}`);
-      log.error(`[files] Error: ${err.message}`);
+      await ctx.reply(`❌ Error procesando archivo: ${sanitizeError(err.message)}`);
+      log.error(`[files] Error: ${sanitizeError(err.message)}`);
     }
   });
 
-  return bot;
+  return { bot, sessionManager };
 }
 
 function handlePrompt(providers, sessionManager) {
@@ -1063,8 +1095,8 @@ function handlePrompt(providers, sessionManager) {
       }
     } catch (err) {
       try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
-      await ctx.reply(`❌ Error: ${err.message}`);
-      log.error(`Execution error [${providerName}]: ${err.message}`);
+      await ctx.reply(`❌ Error: ${sanitizeError(err.message)}`);
+      log.error(`Execution error [${providerName}]: ${sanitizeError(err.message)}`);
       logAudit(ctx.from.id, 'exception', { provider: providerName, error: err.message });
     }
 
@@ -1112,7 +1144,7 @@ async function extractInsight(userMsg, botResponse, providers, userId) {
       }
     }
   } catch (err) {
-    log.debug(`[shared] Insight extraction failed: ${err.message}`);
+    log.debug(`[shared] Insight extraction failed: ${sanitizeError(err.message)}`);
   }
 }
 
@@ -1206,7 +1238,7 @@ export function startAutoChatLoop(bot, providers) {
         SharedMemory.markRead(msg.id);
       }
     } catch (err) {
-      log.error(`[shared] Auto-chat error: ${err.message}`);
+      log.error(`[shared] Auto-chat error: ${sanitizeError(err.message)}`);
     }
   }, 30_000);
 

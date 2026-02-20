@@ -4,7 +4,8 @@ import { log } from '../utils/logger.js';
 // Failed auth attempt tracking for brute-force protection
 const failedAttempts = new Map();
 const MAX_FAILED = 5;
-const LOCKOUT_MS = 15 * 60 * 1000; // 15 min lockout
+const BASE_LOCKOUT_MS = 15 * 60 * 1000; // 15 min base lockout
+const MAX_LOCKOUT_MS = 24 * 60 * 60 * 1000; // 24h max lockout
 
 export function guardMiddleware(sessionManager) {
   return async (ctx, next) => {
@@ -45,13 +46,17 @@ export function guardMiddleware(sessionManager) {
     // Check brute-force lockout
     const attempts = failedAttempts.get(userId);
     if (attempts && attempts.count >= MAX_FAILED) {
+      // Exponential backoff: 15min, 30min, 1h, 2h, ... up to 24h
+      const lockoutMultiplier = Math.pow(2, Math.floor((attempts.count - MAX_FAILED) / MAX_FAILED));
+      const lockoutMs = Math.min(BASE_LOCKOUT_MS * lockoutMultiplier, MAX_LOCKOUT_MS);
       const elapsed = Date.now() - attempts.lastAttempt;
-      if (elapsed < LOCKOUT_MS) {
-        const remaining = Math.ceil((LOCKOUT_MS - elapsed) / 60000);
+
+      if (elapsed < lockoutMs) {
+        const remaining = Math.ceil((lockoutMs - elapsed) / 60000);
         await ctx.reply(`🔒 Bloqueado por intentos fallidos. Intenta en ${remaining} min.`);
         return;
       }
-      failedAttempts.delete(userId);
+      // Don't reset completely — keep count for exponential backoff
     }
 
     // Allow /start and /auth without session

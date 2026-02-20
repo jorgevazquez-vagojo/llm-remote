@@ -171,7 +171,19 @@ export class MCPManager {
     }
   }
 
+  // Allowed MCP command binaries — only these can be spawned
+  static ALLOWED_COMMANDS = ['npx', 'node', 'python', 'python3', 'uvx', 'deno'];
+
   static async addServer(name, command, args = [], env = {}) {
+    // Security: only allow approved binaries
+    const baseBin = command.split('/').pop().toLowerCase();
+    if (!this.ALLOWED_COMMANDS.includes(baseBin)) {
+      throw new Error(
+        `Comando "${command}" no permitido. Solo: ${this.ALLOWED_COMMANDS.join(', ')}. ` +
+        'Esto previene ejecución arbitraria de comandos.'
+      );
+    }
+
     if (servers.has(name)) {
       servers.get(name).disconnect();
     }

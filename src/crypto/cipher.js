@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, pbkdf2Sync, createHmac } from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes, pbkdf2Sync, createHmac, timingSafeEqual } from 'node:crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 const KEY_LENGTH = 32;
@@ -59,7 +59,7 @@ export class Cipher {
     const payload = data.subarray(32);
 
     const expectedHmac = createHmac('sha256', this.#hmacKey).update(payload).digest();
-    if (!hmac.equals(expectedHmac)) {
+    if (hmac.length !== expectedHmac.length || !timingSafeEqual(hmac, expectedHmac)) {
       throw new Error('HMAC verification failed: data tampered');
     }
 
