@@ -43,11 +43,11 @@ After updating HTML manuals, regenerate PDFs:
 
 ## Project Overview
 
-- **LLM Remote** v2.1 — Encrypted Telegram ↔ AI multi-provider bridge
+- **LLM Remote** v2.2 — Encrypted Telegram ↔ AI multi-provider bridge
 - Node.js 20+ ESM, grammY, only 2 production deps (grammy, dotenv)
 - 5 AI providers: Claude Code (agentic), OpenAI, Gemini, Groq, Anthropic
-- Features: voice, vision, files, TTS, web search, schedules, pipelines, MCP, SSH, groups
-- 53 tests across 7 suites
+- Features: voice, vision, files, persona, web search, schedules, pipelines, MCP, SSH, groups
+- 61 tests across 8 suites
 
 ## Code Conventions
 
@@ -62,7 +62,7 @@ After updating HTML manuals, regenerate PDFs:
 ## Testing
 
 ```bash
-npm test  # Runs all 53 tests
+npm test  # Runs all 61 tests
 ```
 
 Test files: `tests/*.test.js` using `node:test` + `node:assert/strict`
@@ -72,3 +72,46 @@ Test files: `tests/*.test.js` using `node:test` + `node:assert/strict`
 - GitHub: `origin` → github.com/jorgevazquez-vagojo/llm-remote
 - GitLab: `gitlab` → git.redegal.net/jorge.vazquez/llm-remote
 - Always push to both: `git push origin main && git push gitlab main`
+
+## MANDATORY: Deploy to Production
+
+**Every time code is pushed to GitHub/GitLab, ALSO update the running bots on the server:**
+
+Server: `37.27.92.122` (root/pepe2021e5e1a)
+
+### Two bot instances:
+1. **Jorge** (@jorge_smart_bot) → `/root/llm-remote-jorge/` container `llm-remote-jorge`
+2. **Isa** (@Cruceiros_bot) → `/root/llm-remote-isa/` container `llm-remote-isa`
+
+### Deploy steps (BOTH bots):
+```bash
+# 1. Sync code (preserving .env and data)
+sshpass -p 'pepe2021e5e1a' rsync -avz --delete \
+  --exclude='.env' --exclude='data' --exclude='node_modules' --exclude='.git' \
+  /Users/jorgevazquez/claude-remote/ root@37.27.92.122:/root/llm-remote-jorge/
+
+sshpass -p 'pepe2021e5e1a' rsync -avz --delete \
+  --exclude='.env' --exclude='data' --exclude='node_modules' --exclude='.git' \
+  /Users/jorgevazquez/claude-remote/ root@37.27.92.122:/root/llm-remote-isa/
+
+# 2. Fix Isa's container name (rsync overwrites docker-compose.yml)
+sshpass -p 'pepe2021e5e1a' ssh root@37.27.92.122 \
+  "sed -i 's/container_name: llm-remote-jorge/container_name: llm-remote-isa/' /root/llm-remote-isa/docker-compose.yml"
+
+# 3. Rebuild and restart both
+sshpass -p 'pepe2021e5e1a' ssh root@37.27.92.122 \
+  "cd /root/llm-remote-jorge && docker compose build --no-cache && docker compose up -d --force-recreate"
+
+sshpass -p 'pepe2021e5e1a' ssh root@37.27.92.122 \
+  "cd /root/llm-remote-isa && docker compose build --no-cache && docker compose up -d --force-recreate"
+
+# 4. Verify
+sshpass -p 'pepe2021e5e1a' ssh root@37.27.92.122 \
+  "docker ps --filter 'name=llm-remote' --format 'table {{.Names}}\t{{.Status}}'"
+```
+
+### IMPORTANT:
+- NEVER rsync .env files — each bot has its own credentials
+- Isa's docker-compose.yml needs `container_name: llm-remote-isa` (rsync copies Jorge's)
+- Isa has SYSTEM_PROMPT env for M&A expert persona
+- After deploy, check `docker logs llm-remote-jorge --tail 5` and `docker logs llm-remote-isa --tail 5`
