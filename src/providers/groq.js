@@ -19,10 +19,10 @@ export class GroqProvider extends BaseProvider {
   }
 
   async execute(prompt, context = {}) {
-    const { workDir, history = [] } = context;
+    const { workDir, history = [], systemPrompt: externalPrompt } = context;
 
     const model = this.config.model || 'llama-3.3-70b-versatile';
-    const systemPrompt = `Eres un asistente experto en ingeniería de software. El usuario trabaja en: ${workDir}. Responde de forma concisa en español. Código en inglés.`;
+    const systemPrompt = externalPrompt || `Eres un asistente experto en ingeniería de software. El usuario trabaja en: ${workDir}. Responde de forma concisa en español. Código en inglés.`;
 
     log.info(`[groq] Calling ${model}`);
 

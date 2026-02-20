@@ -15,8 +15,9 @@ import { webSearch, formatSearchResults } from './search/web.js';
 import { Scheduler } from './scheduler/scheduler.js';
 import { MCPManager } from './mcp/client.js';
 import { Pipeline } from './pipeline/pipeline.js';
-import { isTTSEnabled, toggleTTS, textToSpeech } from './media/tts.js';
+import { textToSpeech } from './media/tts.js';
 import { SSHManager } from './remote/ssh.js';
+import { Persona } from './context/persona.js';
 import { existsSync } from 'node:fs';
 
 export function createBot() {
@@ -37,7 +38,7 @@ export function createBot() {
     const providerList = configured.map(p => `  ${p.displayName}`).join('\n');
 
     await ctx.reply(
-      '🤖 LLM Remote v2.1 — Telegram ↔ IA Bridge\n\n' +
+      '🤖 LLM Remote v2.2 — Telegram ↔ IA Bridge\n\n' +
       'Autenticarse: /auth <PIN>\n\n' +
       '📝 Comandos básicos:\n' +
       '  /ask <prompt> — Enviar prompt\n' +
@@ -50,6 +51,7 @@ export function createBot() {
       '  📷 Foto → análisis visual\n' +
       '  📎 Archivo → análisis de contenido\n' +
       '  /voz — Respuestas también como nota de voz\n' +
+      '  /modo — Personalizar el bot con lenguaje natural\n' +
       '  /web <query> — Búsqueda web + resumen\n' +
       '  /schedule <intervalo> <prompt> — Tareas programadas\n' +
       '  /pipe paso1 → paso2 → paso3 — Pipelines\n' +
@@ -148,14 +150,15 @@ export function createBot() {
     const schedules = Scheduler.list(ctx.from.id);
     const mcpServers = MCPManager.listServers();
 
-    const ttsStatus = isTTSEnabled(ctx.from.id) ? '🔊 Voz ON' : '🔇 Voz OFF';
     const sshServers = SSHManager.listServers();
+    const personaInfo = Persona.getInfo(ctx.from.id);
+    const personaStatus = personaInfo.isCustom ? `🎭 Modo: "${personaInfo.label}"` : '🎭 Modo: default';
 
     await ctx.reply(
       formatStatus(info) +
       `\n\n🤖 ${provider.displayName}\n${providerStatus}` +
       `\n💬 Contexto: ${memStats.messages}/${memStats.maxMessages} mensajes` +
-      `\n${ttsStatus}` +
+      `\n${personaStatus}` +
       (schedules.length ? `\n⏰ Tareas programadas: ${schedules.length}` : '') +
       (mcpServers.length ? `\n🔌 MCP: ${mcpServers.filter(s => s.connected).length}/${mcpServers.length} conectados` : '') +
       (sshServers.length ? `\n🖥️ SSH: ${sshServers.length} servidores` : '')
@@ -224,10 +227,13 @@ export function createBot() {
       const provider = providers.getForUser(ctx.from.id);
       const workDir = sessionManager.getWorkDir(ctx.from.id);
       const history = ConversationMemory.getForProvider(ctx.from.id);
+      const webPersona = Persona.get(ctx.from.id);
+      const webBasePrompt = webPersona || 'Eres un asistente experto. Responde de forma concisa en español.';
+      const webSystemPrompt = `${webBasePrompt}\n\nDirectorio de trabajo: ${workDir}`;
 
       const summaryPrompt = `El usuario buscó "${query}". Resultados:\n\n${formatted}\n\nResume los resultados más relevantes en español. Incluye las URLs de las fuentes.`;
 
-      const aiResult = await provider.execute(summaryPrompt, { workDir, userId: ctx.from.id, history });
+      const aiResult = await provider.execute(summaryPrompt, { workDir, userId: ctx.from.id, history, systemPrompt: webSystemPrompt });
 
       if (aiResult.ok) {
         ConversationMemory.add(ctx.from.id, 'user', `[búsqueda web: ${query}]`);
@@ -419,13 +425,59 @@ export function createBot() {
     }
   });
 
-  // /voz — toggle TTS mode
+  // /modo — configure bot persona with natural language
+  bot.command('modo', async (ctx) => {
+    const args = ctx.match?.trim();
+
+    if (!args) {
+      const info = Persona.getInfo(ctx.from.id);
+      const current = info.isCustom
+        ? `Personalizado: "${info.label}"\n\n${info.prompt.substring(0, 500)}`
+        : (info.prompt ? `Default: ${info.prompt.substring(0, 300)}` : 'Sin personalizar');
+
+      await ctx.reply(
+        '🎭 Modo / Personalidad del bot\n\n' +
+        `Estado actual:\n${current}\n\n` +
+        'Comandos:\n' +
+        '  /modo <instrucciones> — Configurar personalidad\n' +
+        '  /modo + <instrucciones> — Anadir instrucciones\n' +
+        '  /modo reset — Volver al default\n\n' +
+        'Ejemplos:\n' +
+        '  /modo Eres un experto en finanzas. Responde siempre con datos y fuentes.\n' +
+        '  /modo + Cuando hables de mercados, incluye graficos ASCII.\n' +
+        '  /modo Responde siempre en ingles y formato bullet points.'
+      );
+      return;
+    }
+
+    if (args.toLowerCase() === 'reset') {
+      Persona.reset(ctx.from.id);
+      logAudit(ctx.from.id, 'persona_reset');
+      await ctx.reply('🎭 Personalidad reseteada al default.');
+      return;
+    }
+
+    if (args.startsWith('+ ') || args.startsWith('+')) {
+      const extra = args.replace(/^\+\s*/, '');
+      Persona.append(ctx.from.id, extra);
+      logAudit(ctx.from.id, 'persona_append', { extra: extra.substring(0, 100) });
+      await ctx.reply(`🎭 Instrucciones anadidas:\n"${extra.substring(0, 200)}"`);
+      return;
+    }
+
+    Persona.set(ctx.from.id, args);
+    logAudit(ctx.from.id, 'persona_set', { prompt: args.substring(0, 100) });
+    await ctx.reply(`🎭 Personalidad configurada:\n"${args.substring(0, 300)}"\n\nEl bot ahora respondera segun estas instrucciones.`);
+  });
+
+  // /voz — info about voice behavior
   bot.command('voz', async (ctx) => {
-    const enabled = toggleTTS(ctx.from.id);
-    logAudit(ctx.from.id, 'tts_toggle', { enabled });
-    await ctx.reply(enabled
-      ? '🔊 Modo voz ACTIVADO — Las respuestas se enviarán también como nota de voz.'
-      : '🔇 Modo voz DESACTIVADO — Solo respuestas de texto.');
+    await ctx.reply(
+      '🎤 Modo Voz\n\n' +
+      '📝 Texto → Respuesta en texto\n' +
+      '🎤 Audio → Respuesta en texto + audio\n\n' +
+      'Envía un mensaje de voz y el bot responderá con texto y nota de voz automáticamente.'
+    );
   });
 
   // /ssh — remote server management
@@ -532,7 +584,7 @@ export function createBot() {
   // /help
   bot.command('help', async (ctx) => {
     await ctx.reply(
-      '🤖 LLM Remote v2.1 — Comandos:\n\n' +
+      '🤖 LLM Remote v2.2 — Comandos:\n\n' +
       '🔐 Sesión:\n' +
       '  /auth <PIN> — Autenticarse\n' +
       '  /lock — Bloquear sesión\n' +
@@ -541,14 +593,14 @@ export function createBot() {
       '🤖 IA:\n' +
       '  /ask <prompt> — Enviar prompt\n' +
       '  /ia [nombre] — Ver/cambiar proveedor\n' +
+      '  /modo — Personalizar personalidad del bot\n' +
       '  /clear — Limpiar contexto conversación\n' +
       '  /project <ruta> — Directorio de trabajo\n' +
       '  /kill — Parar proceso\n\n' +
       '🆕 Multimedia:\n' +
-      '  🎤 Audio — Transcripción automática + IA\n' +
+      '  🎤 Audio → Transcripción + IA + respuesta por voz\n' +
       '  📷 Foto — Análisis visual con IA\n' +
-      '  📎 Archivo — Análisis de contenido\n' +
-      '  /voz — Activar/desactivar respuestas por voz\n\n' +
+      '  📎 Archivo — Análisis de contenido\n\n' +
       '🔍 Herramientas:\n' +
       '  /web <query> — Búsqueda web + resumen IA\n' +
       '  /schedule <intervalo> <prompt> — Tarea programada\n' +
@@ -601,10 +653,15 @@ export function createBot() {
       const providerName = providers.getUserProviderName(ctx.from.id);
       const history = ConversationMemory.getForProvider(ctx.from.id);
 
+      // Build system prompt from persona
+      const persona = Persona.get(ctx.from.id);
+      const voiceBasePrompt = persona || 'Eres un asistente experto en ingeniería de software. Responde de forma concisa en español. Código en inglés.';
+      const voiceSystemPrompt = `${voiceBasePrompt}\n\nDirectorio de trabajo: ${workDir}`;
+
       ConversationMemory.add(ctx.from.id, 'user', transcription);
       logAudit(ctx.from.id, 'voice_prompt', { provider: providerName, prompt: transcription.substring(0, 200) });
 
-      const result = await provider.execute(transcription, { workDir, userId: ctx.from.id, history });
+      const result = await provider.execute(transcription, { workDir, userId: ctx.from.id, history, systemPrompt: voiceSystemPrompt });
 
       try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
 
@@ -619,14 +676,12 @@ export function createBot() {
           await ctx.reply((i === 0 ? header : '') + chunks[i] + (isLast ? footer : ''));
         }
 
-        // TTS response for voice messages (natural flow: audio in → audio out)
-        if (isTTSEnabled(ctx.from.id)) {
-          try {
-            const audioBuffer = await textToSpeech(result.output.substring(0, 4000));
-            await ctx.replyWithVoice(new InputFile(audioBuffer, 'response.ogg'));
-          } catch (ttsErr) {
-            log.warn(`[tts] Failed: ${ttsErr.message}`);
-          }
+        // TTS response: audio in → audio out (always, natural flow)
+        try {
+          const audioBuffer = await textToSpeech(result.output.substring(0, 4000));
+          await ctx.replyWithVoice(new InputFile(audioBuffer, 'response.ogg'));
+        } catch (ttsErr) {
+          log.warn(`[tts] Failed for voice response: ${ttsErr.message}`);
         }
       } else {
         await ctx.reply(`🎤 "${transcription.substring(0, 100)}"\n\n❌ Error: ${result.output?.substring(0, 500)}`);
@@ -742,13 +797,16 @@ export function createBot() {
       const providerName = providers.getUserProviderName(ctx.from.id);
       const workDir = sessionManager.getWorkDir(ctx.from.id);
       const history = ConversationMemory.getForProvider(ctx.from.id);
+      const filePersona = Persona.get(ctx.from.id);
+      const fileBasePrompt = filePersona || 'Eres un asistente experto en ingeniería de software. Responde de forma concisa en español. Código en inglés.';
+      const fileSystemPrompt = `${fileBasePrompt}\n\nDirectorio de trabajo: ${workDir}`;
 
       const prompt = `El usuario envió el archivo "${fileName}":\n\n\`\`\`\n${content.substring(0, 10000)}\n\`\`\`\n\n${caption}`;
 
       ConversationMemory.add(ctx.from.id, 'user', `[archivo: ${fileName}] ${caption}`);
       logAudit(ctx.from.id, 'file_prompt', { provider: providerName, file: fileName });
 
-      const result = await provider.execute(prompt, { workDir, userId: ctx.from.id, history });
+      const result = await provider.execute(prompt, { workDir, userId: ctx.from.id, history, systemPrompt: fileSystemPrompt });
 
       try { await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id); } catch {}
 
@@ -788,6 +846,11 @@ function handlePrompt(providers, sessionManager) {
     const providerName = providers.getUserProviderName(ctx.from.id);
     const history = ConversationMemory.getForProvider(ctx.from.id);
 
+    // Build system prompt from persona + workDir context
+    const persona = Persona.get(ctx.from.id);
+    const basePrompt = persona || 'Eres un asistente experto en ingeniería de software. Responde de forma concisa en español. Código en inglés.';
+    const systemPrompt = `${basePrompt}\n\nDirectorio de trabajo: ${workDir}`;
+
     // Add MCP tools description to context
     const mcpToolsDesc = MCPManager.getToolsDescription();
 
@@ -809,6 +872,7 @@ function handlePrompt(providers, sessionManager) {
         workDir,
         userId: ctx.from.id,
         history,
+        systemPrompt,
         onChunk: async (chunk) => {
           if (Date.now() - lastUpdate > 3000) {
             try {
@@ -836,16 +900,6 @@ function handlePrompt(providers, sessionManager) {
           const isLast = i === chunks.length - 1;
           await ctx.reply(chunks[i] + (isLast ? footer : ''));
           if (chunks.length > 1) await new Promise(r => setTimeout(r, 500));
-        }
-
-        // Send voice note if TTS is enabled
-        if (isTTSEnabled(ctx.from.id)) {
-          try {
-            const audioBuffer = await textToSpeech(output.substring(0, 4000));
-            await ctx.replyWithVoice(new InputFile(audioBuffer, 'response.ogg'));
-          } catch (ttsErr) {
-            log.warn(`[tts] Failed: ${ttsErr.message}`);
-          }
         }
 
         logAudit(ctx.from.id, 'response', {

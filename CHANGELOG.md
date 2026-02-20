@@ -2,6 +2,25 @@
 
 Todos los cambios notables de este proyecto se documentan aquí.
 
+## [2.2.0] — 2026-02-20
+
+### Añadido
+- Sistema de Persona: /modo para personalizar la personalidad del bot con lenguaje natural
+  - /modo <instrucciones> — Configurar personalidad
+  - /modo + <instrucciones> — Añadir instrucciones
+  - /modo reset — Volver al default
+  - Persistencia en data/personas.json
+  - Variable SYSTEM_PROMPT para persona por defecto
+- Inyección de system prompt en todos los proveedores (OpenAI, Gemini, Anthropic, Groq)
+- 8 tests nuevos para el módulo Persona — total 61 tests
+
+### Cambiado
+- TTS: audio solo se envía como respuesta a mensajes de voz (audio in → audio out)
+  - Texto in → solo respuesta texto (sin audio duplicado)
+  - Elimina necesidad del toggle /voz
+- /status muestra info de persona activa
+- /help y /start actualizados con /modo
+
 ## [2.1.0] — 2026-02-20
 
 ### Añadido
